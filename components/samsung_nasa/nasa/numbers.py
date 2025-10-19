@@ -89,6 +89,12 @@ numbers = {
         CONF_DATA: cmd_numeric_data(16, 30),
         CONF_DEFAULTS: temperature_defaults()
     },
+    0x4248: {
+        NASA_LABEL: "VAR_IN_TEMP_WATER_LAW_TARGET_F",
+        NASA_MODE: CONTROLLER_MODE_CONTROL,
+        CONF_DATA: cmd_numeric_data(-5, 5),
+        CONF_DEFAULTS: temperature_defaults()
+    },
     0x42D6: {
         NASA_LABEL: "VAR_IN_TEMP_TARGET_ZONE2_F",
         NASA_MODE: CONTROLLER_MODE_CONTROL,
