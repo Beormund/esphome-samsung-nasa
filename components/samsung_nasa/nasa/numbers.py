@@ -107,6 +107,13 @@ numbers = {
         CONF_DATA: cmd_numeric_data(15, 55),
         CONF_DEFAULTS: temperature_defaults()
     },
+    0x4248: {
+        NASA_LABEL: "VAR_IN_TEMP_WATER_LAW_TARGET_F",
+        NASA_MODE: CONTROLLER_MODE_CONTROL,
+        CONF_DATA: cmd_numeric_data(-5, +5,0.5),
+        CONF_ENTITY_CATEGORY: ENTITY_CATEGORY_CONFIG,
+        CONF_DEFAULTS: temperature_defaults()
+    },
     0x424A: {
         NASA_LABEL: "VAR_IN_FSV_1011",
         NASA_MODE: CONTROLLER_MODE_FSV,

@@ -120,6 +120,16 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: sensor_defaults()
     },
+    0x40c4: {
+        NASA_LABEL: "ENUM_IN_WATERPUMP_PWM_VALUE",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_PERCENT,
+            icon=ICON_FLOW,
+            device_class=DEVICE_CLASS_EMPTY,
+            state_class=STATE_CLASS_MEASUREMENT
+        )
+    },
     0x4236: {
         NASA_LABEL: "VAR_IN_TEMP_WATER_IN_F ",
         NASA_MODE: CONTROLLER_MODE_STATUS,
