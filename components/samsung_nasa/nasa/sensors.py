@@ -190,7 +190,7 @@ sensors = {
             unit_of_measurement=UNIT_WATT,
             icon=ICON_FLASH,
             accuracy_decimals=1, 
-            device_class=DEVICE_CLASS_ENERGY,
+            device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT,
             filters=[{CONF_LAMBDA: Lambda("return (int16_t)x;")}] 
         )
