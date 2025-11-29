@@ -185,11 +185,12 @@ So for example message 0x4066 (hot water mode):
 
 ### Supported Commands  
 
-| NASA Code | NASA Label                        | Description                            |
-|-----------|-----------------------------------|--------------------------------------- |
-| 0x4001    | ENUM_IN_OPERATION_MODE            | Operation mode (eg. Auto, Heat, Cool)  |
-| 0x4066    | ENUM_IN_WATER_HEATER_MODE         | DHW mode (eco, standard, power, force) |
-| 0x406F    | ENUM_IN_REFERENCE_EHS_TEMP        | Temperature Reference (Room, Water Out)|
+| NASA Code | NASA Label                  | Description                                     |
+|-----------|-----------------------------|-------------------------------------------------|
+| 0x4001    | ENUM_IN_OPERATION_MODE      | Operation mode (eg. Auto, Heat, Cool)           |
+| 0x4066    | ENUM_IN_WATER_HEATER_MODE   | DHW mode (eco, standard, power, force)          |
+| 0x406F    | ENUM_IN_REFERENCE_EHS_TEMP  | Temperature Reference (Room, Water Out)         |
+| 0x8003    | ENUM_OUT_OPERATION_HEATCOOL | Cool/heat mode (Cool, Heat, CoolMain, HeatMain) |
 
 ### Supported FSVs  
 
