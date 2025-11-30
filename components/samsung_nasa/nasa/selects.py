@@ -182,6 +182,10 @@ selects = {
         ]),
         CONF_DEFAULTS: select_defaults()          
     },
-
-
+    0x8003: {
+        NASA_LABEL: "ENUM_OUT_OPERATION_HEATCOOL",
+        NASA_MODE: CONTROLLER_MODE_CONTROL,
+        CONF_DATA: cmd_select_data(["Cool", "Heat", "CoolMain", "HeatMain"]),
+        CONF_DEFAULTS: select_defaults(offset=1)
+    }
 }
