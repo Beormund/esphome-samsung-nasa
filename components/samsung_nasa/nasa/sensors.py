@@ -207,6 +207,21 @@ sensors = {
             filters=[{CONF_MULTIPLY: 0.001}]
         )
     },
+    0x8000: {
+        NASA_LABEL: "ENUM_OUT_OPERATION_SERVICE_OP",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults()
+    },
+    0x8001: {
+        NASA_LABEL: "ENUM_OUT_OPERATION_ODU_MODE",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults()
+    },
+    0x8061: {
+        NASA_LABEL: "ENUM_OUT_DEICE_STEP_INDOOR",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults()
+    },    
     0x8204: {
         NASA_LABEL: "VAR_OUT_SENSOR_AIROUT",
         NASA_MODE: CONTROLLER_MODE_STATUS,
