@@ -316,6 +316,9 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x4284    | NASA_INDOOR_POWER_CONSUMPTION             | Indoor unit power consumption          |
 | 0x4426    | LVAR_IN_4426                              | Heat pump produced energy (last minute)|
 | 0x4427    | LVAR_IN_4427                              | Heat pump produced energy (total)      |
+| 0x8000    | ENUM_OUT_OPERATION_SERVICE_OP             | Outdoor unit service modes             |
+| 0x8001    | ENUM_OUT_OPERATION_ODU_MODE               | Outdoor unit driving Modes             |
+| 0x8061    | ENUM_OUT_DEICE_STEP_INDOOR                | Defrost operation steps                |
 | 0x8204    | VAR_OUT_SENSOR_AIROUT                     | Outdoor temperature                    |
 | 0x8217    | VAR_OUT_SENSOR_CT1                        | Outdoor current (Amps)                 |
 | 0x8235    | VAR_OUT_ERROR_CODE                        | Error code (0 = OK)                    |
