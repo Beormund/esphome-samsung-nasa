@@ -95,7 +95,6 @@ number:
   - platform: samsung_nasa
     message: 0x4201
     name: "Zone 1 Target Temp"
-    internal: true
     nasa_device_id: nasa_device_1
     id: zone_target_temp
 
@@ -210,13 +209,11 @@ switch:
     message: 0x4065
     nasa_device_id: nasa_device_1
     name: "DHW Power"
-    internal: true
     id: dhw_power_switch
   - platform: samsung_nasa
     message: 0x4000
     nasa_device_id: nasa_device_1
     name: "Zone 1 Power"
-    internal: true
     id: zone_power
 ```
  
@@ -306,6 +303,10 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x4089    | ENUM_IN_STATE_WATER_PUMP                  | Primary water pump status              |
 | 0x408A    | ENUM_IN_2WAY_VALVE                        | Zone control valve status              |
 | 0x40C4    | ENUM_IN_WATERPUMP_PWM_VALUE               | PWM Water Pump Status (%)              |
+| 0x4202    | VAR_IN_DHW_HEAT_UNTIL                     | Heat DHW until this temperature        |
+| 0x4204    | VAR_IN_WATER_OUT_TW2                      | Similar to 0x4238 but 2 degrees lower  |
+| 0x4205    | VAR_IN_TEMP_EVA_IN_F                      | EVA return temperature                 |
+| 0x4206    | VAR_IN_TEMP_EVA_OUT_F                     | EVA flow temperature                   |
 | 0x4236    | VAR_IN_TEMP_WATER_IN_F                    | Flow return temperature                |
 | 0x4237    | VAR_IN_TEMP_WATER_TANK_F                  | DHW tank temperature                   |
 | 0x4238    | VAR_IN_TEMP_WATER_OUT_F                   | Flow temperature                       |
@@ -314,6 +315,8 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x4204    | VAR_IN_TEMP_ZONE2_F                       | Zone 2 room temperature                |
 | 0x42E9    | VAR_IN_FLOW_SENSOR_CALC                   | Flow rate sensor (l/min)               |
 | 0x4284    | NASA_INDOOR_POWER_CONSUMPTION             | Indoor unit power consumption          |
+| 0x4423    | LVAR_IN_MINS_SINCE_INST                   | Mins since installation (unit: days)   |
+| 0x4424    | LVAR_IN_MINS_ACTIVE_SINCE_INST            | Mins active since inst. (unit: hours)  |
 | 0x4426    | LVAR_IN_4426                              | Heat pump produced energy (last minute)|
 | 0x4427    | LVAR_IN_4427                              | Heat pump produced energy (total)      |
 | 0x8000    | ENUM_OUT_OPERATION_SERVICE_OP             | Outdoor unit service modes             |
@@ -322,6 +325,9 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x8204    | VAR_OUT_SENSOR_AIROUT                     | Outdoor temperature                    |
 | 0x8217    | VAR_OUT_SENSOR_CT1                        | Outdoor current (Amps)                 |
 | 0x8235    | VAR_OUT_ERROR_CODE                        | Error code (0 = OK)                    |
+| 0x823D    | VAR_OUT_LOAD_FANRPM1                      | Outdoor fan speed (rpm)                |
+| 0x8280    | VAR_OUT_SENSOR_TOP1                       | TOP1 sensor reading (°C)               |
+| 0x8411    | NASA_OUTDOOR_CONTROL_WATTMETER_1UNIT      | Outdoor unit inst. power consumed (w)  |
 | 0x8413    | LVAR_OUT_CONTROL_WATTMETER_1W_1MIN_SUM    | Heat pump consumed energy (last minute)|
 | 0x8414    | LVAR_OUT_CONTROL_WATTMETER_ALL_UNIT_ACCUM | Heat pump consumed energy (total)      |
 
@@ -421,7 +427,6 @@ switch:
     message: 0x4065
     nasa_device_id: nasa_device_1
     name: "DHW Power"
-    internal: true
     id: dhw_power_switch
 ```
 
@@ -444,7 +449,6 @@ number:
   - platform: samsung_nasa
     message: 0x4235
     name: DHW Target Temperature
-    internal: true
     nasa_device_id: nasa_device_1
     id: hot_water_target_temp
 ```
@@ -458,7 +462,6 @@ sensor:
     message: 0x4067
     nasa_device_id: nasa_device_1
     name: "3-Way Valve"
-    internal: true
     id: three_way_valve 
 
 climate:
