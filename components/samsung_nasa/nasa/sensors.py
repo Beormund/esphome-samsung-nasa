@@ -1,5 +1,6 @@
 from esphome.core import Lambda
 from esphome.const import (
+    DEVICE_CLASS_DURATION,
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_POWER,
     DEVICE_CLASS_ENERGY,
@@ -17,6 +18,7 @@ from esphome.const import (
     UNIT_KILOWATT_HOURS,
     UNIT_EMPTY,
     UNIT_PERCENT,
+    UNIT_REVOLUTIONS_PER_MINUTE,
     UNIT_VOLT,
     CONF_ENTITY_CATEGORY,
     CONF_UNIT_OF_MEASUREMENT,
@@ -32,9 +34,11 @@ from esphome.const import (
     CONF_LAMBDA,
     CONF_MULTIPLY,
     ICON_COUNTER,
-    ICON_EMPTY,    
+    ICON_EMPTY,
+    ICON_FAN,
     ICON_THERMOMETER,
-    ICON_FLASH
+    ICON_FLASH,
+    ICON_TIMELAPSE
 )
 from .const import *
 
@@ -130,8 +134,28 @@ sensors = {
             state_class=STATE_CLASS_MEASUREMENT
         )
     },
+    0x4202: {
+        NASA_LABEL: "VAR_IN_DHW_HEAT_UNTIL",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x4204: {
+        NASA_LABEL: "VAR_IN_WATER_OUT_TW2",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x4205: {
+        NASA_LABEL: "VAR_IN_TEMP_EVA_IN_F",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x4206: {
+        NASA_LABEL: "VAR_IN_TEMP_EVA_OUT_F",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
     0x4236: {
-        NASA_LABEL: "VAR_IN_TEMP_WATER_IN_F ",
+        NASA_LABEL: "VAR_IN_TEMP_WATER_IN_F",
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: temp_sensor_defaults()
     },     
@@ -181,7 +205,31 @@ sensors = {
             accuracy_decimals=1,
             device_class=DEVICE_CLASS_POWER,
             state_class=STATE_CLASS_MEASUREMENT            
-        )        
+        )
+    },
+    0x4423: {
+        NASA_LABEL: "LVAR_IN_MINS_SINCE_INST",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement= "d",
+            icon=ICON_TIMELAPSE,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_DURATION,
+            state_class=STATE_CLASS_MEASUREMENT,
+            filters=[{CONF_LAMBDA: Lambda("return x / 1440.0;")}]
+        )
+    },
+    0x4424: {
+        NASA_LABEL: "LVAR_IN_MINS_ACTIVE_SINCE_INST",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement= "h",
+            icon=ICON_TIMELAPSE,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_DURATION,
+            state_class=STATE_CLASS_MEASUREMENT,
+            filters=[{CONF_LAMBDA: Lambda("return x / 60.0;")}]
+        )
     },    
     0x4426: {
         NASA_LABEL: "LVAR_IN_4426",
@@ -246,6 +294,32 @@ sensors = {
             icon=ICON_ALERT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             filters=[{CONF_DELTA: 1}]
+        )
+    },
+    0x823D: {
+        NASA_LABEL: "VAR_OUT_LOAD_FANRPM1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_REVOLUTIONS_PER_MINUTE,
+            icon=ICON_FAN,
+            accuracy_decimals=0, 
+            state_class=STATE_CLASS_MEASUREMENT
+        )
+    },
+    0x8280: {
+        NASA_LABEL: "VAR_OUT_SENSOR_TOP1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x8411: {
+        NASA_LABEL: "NASA_OUTDOOR_CONTROL_WATTMETER_1UNIT",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_WATT,
+            icon=ICON_FLASH,
+            accuracy_decimals=0, 
+            device_class=DEVICE_CLASS_POWER,
+            state_class=STATE_CLASS_MEASUREMENT
         )
     },
     0x8413: {
