@@ -238,13 +238,14 @@ switches = {
 
 ### Supported Commands  
 
-| NASA Code | NASA Label                          | Description                            |
-|-----------|-------------------------------------|--------------------------------------- |
-| 0x4065    | ENUM_IN_WATER_HEATER_POWER          | DHW On/Off control                     |
-| 0x4000    | ENUM_IN_OPERATION_POWER             | Zone 1 heating On/Off control          |
-| 0x406D    | ENUM_IN_OUTING_MODE                 | Outing On/Off control                  |
-| 0x411E    | ENUM_IN_OPERATION_POWER_ZONE2.      | Zone 2 heating On/Off control          |
-| 0x4111    | ENUM_IN_OPERATION_AUTOMATIC_CLEANING| Turn on/off automatic cleaning         |
+| NASA Code | NASA Label                           | Description                            |
+|-----------|--------------------------------------|----------------------------------------|
+| 0x4000    | ENUM_IN_OPERATION_POWER              | Zone 1 heating On/Off control          |
+| 0x4046    | ENUM_IN_SILENCE                      | Silence mode  On/Off control           |
+| 0x4065    | ENUM_IN_WATER_HEATER_POWER           | DHW On/Off control                     |
+| 0x406D    | ENUM_IN_OUTING_MODE                  | Outing On/Off control                  |
+| 0x411E    | ENUM_IN_OPERATION_POWER_ZONE2.       | Zone 2 heating On/Off control          |
+| 0x4111    | ENUM_IN_OPERATION_AUTOMATIC_CLEANING | Turn on/off automatic cleaning         |
 
 ### Supported FSVs  
 
