@@ -9,6 +9,7 @@ from esphome.const import (
     DEVICE_CLASS_VOLTAGE,
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_VOLUME_FLOW_RATE,
+    DEVICE_CLASS_PRESSURE,
     STATE_CLASS_TOTAL_INCREASING,
     STATE_CLASS_NONE,
     STATE_CLASS_MEASUREMENT,
@@ -275,6 +276,33 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: temp_sensor_defaults()
     },
+    0x8206: {
+        NASA_LABEL: "VAR_OUT_SENSOR_HIGHPRESS",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement='kgf/cm²',
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_PRESSURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            filters=[{CONF_MULTIPLY: 0.1}]
+        )
+    },
+    0x8208: {
+        NASA_LABEL: "VAR_OUT_SENSOR_LOWPRESS",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement='kgf/cm²',
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_PRESSURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            filters=[{CONF_MULTIPLY: 0.1}]
+        )
+    },
+    0x820A: {
+        NASA_LABEL: "VAR_OUT_SENSOR_DISCHARGE1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
     0x8217: {
         NASA_LABEL: "VAR_OUT_SENSOR_CT1",
         NASA_MODE: CONTROLLER_MODE_STATUS,
@@ -285,6 +313,31 @@ sensors = {
             state_class=STATE_CLASS_MEASUREMENT,
             filters=[{CONF_MULTIPLY: 0.1}]
         )
+    },
+    0x8218: {
+        NASA_LABEL: "VAR_OUT_SENSOR_CONDOUT",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x821A: {
+        NASA_LABEL: "VAR_OUT_SENSOR_SUCTION",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x821C: {
+        NASA_LABEL: "VAR_OUT_SENSOR_DOUBLETUBE",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x821E: {
+        NASA_LABEL: "VAR_OUT_SENSOR_EVIIN",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x8220: {
+        NASA_LABEL: "VAR_OUT_SENSOR_EVIOUT",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
     },
     0x8235: {
         NASA_LABEL: "VAR_OUT_ERROR_CODE",
