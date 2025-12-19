@@ -238,13 +238,14 @@ switches = {
 
 ### Supported Commands  
 
-| NASA Code | NASA Label                          | Description                            |
-|-----------|-------------------------------------|--------------------------------------- |
-| 0x4065    | ENUM_IN_WATER_HEATER_POWER          | DHW On/Off control                     |
-| 0x4000    | ENUM_IN_OPERATION_POWER             | Zone 1 heating On/Off control          |
-| 0x406D    | ENUM_IN_OUTING_MODE                 | Outing On/Off control                  |
-| 0x411E    | ENUM_IN_OPERATION_POWER_ZONE2.      | Zone 2 heating On/Off control          |
-| 0x4111    | ENUM_IN_OPERATION_AUTOMATIC_CLEANING| Turn on/off automatic cleaning         |
+| NASA Code | NASA Label                           | Description                            |
+|-----------|--------------------------------------|----------------------------------------|
+| 0x4000    | ENUM_IN_OPERATION_POWER              | Zone 1 heating On/Off control          |
+| 0x4046    | ENUM_IN_SILENCE                      | Silence mode  On/Off control           |
+| 0x4065    | ENUM_IN_WATER_HEATER_POWER           | DHW On/Off control                     |
+| 0x406D    | ENUM_IN_OUTING_MODE                  | Outing On/Off control                  |
+| 0x411E    | ENUM_IN_OPERATION_POWER_ZONE2.       | Zone 2 heating On/Off control          |
+| 0x4111    | ENUM_IN_OPERATION_AUTOMATIC_CLEANING | Turn on/off automatic cleaning         |
 
 ### Supported FSVs  
 
@@ -293,43 +294,54 @@ Here is the python entry that configures the above DHW Temperature sensor:
 },
 ```
 
-| NASA Code | NASA Label                                | Description                            |
-|-----------|-------------------------------------------|--------------------------------------- |
-| 0x24FC    | LVAR_NM_OUT_SENSOR_VOLTAGE                | Heat pump voltage                      |
-| 0x4038    | ENUM_IN_STATE_HUMIDITY_PERCENT            | Only available with A/C units          |
-| 0x4067    | ENUM_IN_3WAY_VALVE                        | DHW valve (0=heat, 1=tank)             |
-| 0x4069    | ENUM_IN_THERMOSTAT1                       | Zone 1 input signal from external stat |
-| 0x406A    | ENUM_IN_THERMOSTAT2                       | Zone 2 input signal from external stat |
-| 0x4089    | ENUM_IN_STATE_WATER_PUMP                  | Primary water pump status              |
-| 0x408A    | ENUM_IN_2WAY_VALVE                        | Zone control valve status              |
-| 0x40C4    | ENUM_IN_WATERPUMP_PWM_VALUE               | PWM Water Pump Status (%)              |
-| 0x4202    | VAR_IN_DHW_HEAT_UNTIL                     | Heat DHW until this temperature        |
-| 0x4204    | VAR_IN_WATER_OUT_TW2                      | Similar to 0x4238 but 2 degrees lower  |
-| 0x4205    | VAR_IN_TEMP_EVA_IN_F                      | EVA return temperature                 |
-| 0x4206    | VAR_IN_TEMP_EVA_OUT_F                     | EVA flow temperature                   |
-| 0x4236    | VAR_IN_TEMP_WATER_IN_F                    | Flow return temperature                |
-| 0x4237    | VAR_IN_TEMP_WATER_TANK_F                  | DHW tank temperature                   |
-| 0x4238    | VAR_IN_TEMP_WATER_OUT_F                   | Flow temperature                       |
-| 0x4203    | VAR_IN_TEMP_ROOM_F                        | Zone 1 room temperature                |
-| 0x427F    | VAR_IN_TEMP_WATER_LAW_F                   | Water law target flow temperature      |
-| 0x4204    | VAR_IN_TEMP_ZONE2_F                       | Zone 2 room temperature                |
-| 0x42E9    | VAR_IN_FLOW_SENSOR_CALC                   | Flow rate sensor (l/min)               |
-| 0x4284    | NASA_INDOOR_POWER_CONSUMPTION             | Indoor unit power consumption          |
-| 0x4423    | LVAR_IN_MINS_SINCE_INST                   | Mins since installation (unit: days)   |
-| 0x4424    | LVAR_IN_MINS_ACTIVE_SINCE_INST            | Mins active since inst. (unit: hours)  |
-| 0x4426    | LVAR_IN_4426                              | Heat pump produced energy (last minute)|
-| 0x4427    | LVAR_IN_4427                              | Heat pump produced energy (total)      |
-| 0x8000    | ENUM_OUT_OPERATION_SERVICE_OP             | Outdoor unit service modes             |
-| 0x8001    | ENUM_OUT_OPERATION_ODU_MODE               | Outdoor unit driving Modes             |
-| 0x8061    | ENUM_OUT_DEICE_STEP_INDOOR                | Defrost operation steps                |
-| 0x8204    | VAR_OUT_SENSOR_AIROUT                     | Outdoor temperature                    |
-| 0x8217    | VAR_OUT_SENSOR_CT1                        | Outdoor current (Amps)                 |
-| 0x8235    | VAR_OUT_ERROR_CODE                        | Error code (0 = OK)                    |
-| 0x823D    | VAR_OUT_LOAD_FANRPM1                      | Outdoor fan speed (rpm)                |
-| 0x8280    | VAR_OUT_SENSOR_TOP1                       | TOP1 sensor reading (°C)               |
-| 0x8411    | NASA_OUTDOOR_CONTROL_WATTMETER_1UNIT      | Outdoor unit inst. power consumed (w)  |
-| 0x8413    | LVAR_OUT_CONTROL_WATTMETER_1W_1MIN_SUM    | Heat pump consumed energy (last minute)|
-| 0x8414    | LVAR_OUT_CONTROL_WATTMETER_ALL_UNIT_ACCUM | Heat pump consumed energy (total)      |
+| NASA Code | NASA Label                                | Description                             |
+|-----------|-------------------------------------------|-----------------------------------------|
+| 0x24FC    | LVAR_NM_OUT_SENSOR_VOLTAGE                | Heat pump voltage                       |
+| 0x4038    | ENUM_IN_STATE_HUMIDITY_PERCENT            | Only available with A/C units           |
+| 0x4067    | ENUM_IN_3WAY_VALVE                        | DHW valve (0=heat, 1=tank)              |
+| 0x4069    | ENUM_IN_THERMOSTAT1                       | Zone 1 input signal from external stat  |
+| 0x406A    | ENUM_IN_THERMOSTAT2                       | Zone 2 input signal from external stat  |
+| 0x4089    | ENUM_IN_STATE_WATER_PUMP                  | Primary water pump status               |
+| 0x408A    | ENUM_IN_2WAY_VALVE                        | Zone control valve status               |
+| 0x40C4    | ENUM_IN_WATERPUMP_PWM_VALUE               | PWM Water Pump Status (%)               |
+| 0x4202    | VAR_IN_DHW_HEAT_UNTIL                     | Heat DHW until this temperature         |
+| 0x4204    | VAR_IN_WATER_OUT_TW2                      | Similar to 0x4238 but 2 degrees lower   |
+| 0x4205    | VAR_IN_TEMP_EVA_IN_F                      | EVA return temperature                  |
+| 0x4206    | VAR_IN_TEMP_EVA_OUT_F                     | EVA flow temperature                    |
+| 0x4236    | VAR_IN_TEMP_WATER_IN_F                    | Flow return temperature                 |
+| 0x4237    | VAR_IN_TEMP_WATER_TANK_F                  | DHW tank temperature                    |
+| 0x4238    | VAR_IN_TEMP_WATER_OUT_F                   | Flow temperature                        |
+| 0x4203    | VAR_IN_TEMP_ROOM_F                        | Zone 1 room temperature                 |
+| 0x427F    | VAR_IN_TEMP_WATER_LAW_F                   | Water law target flow temperature       |
+| 0x4204    | VAR_IN_TEMP_ZONE2_F                       | Zone 2 room temperature                 |
+| 0x42E9    | VAR_IN_FLOW_SENSOR_CALC                   | Flow rate sensor (l/min)                |
+| 0x4284    | NASA_INDOOR_POWER_CONSUMPTION             | Indoor unit power consumption           |
+| 0x4423    | LVAR_IN_MINS_SINCE_INST                   | Mins since installation (unit: days)    |
+| 0x4424    | LVAR_IN_MINS_ACTIVE_SINCE_INST            | Mins active since inst. (unit: hours)   |
+| 0x4426    | LVAR_IN_4426                              | Heat pump produced energy (last minute) |
+| 0x4427    | LVAR_IN_4427                              | Heat pump produced energy (total)       |
+| 0x8000    | ENUM_OUT_OPERATION_SERVICE_OP             | Outdoor unit service modes              |
+| 0x8001    | ENUM_OUT_OPERATION_ODU_MODE               | Outdoor unit driving Modes              |
+| 0x8061    | ENUM_OUT_DEICE_STEP_INDOOR                | Defrost operation steps                 |
+| 0x8204    | VAR_OUT_SENSOR_AIROUT                     | Outdoor temperature                     |
+| 0x8206    | VAR_OUT_SENSOR_HIGHPRESS                  | High pressure (kgf/cm²)                 |
+| 0x8208    | VAR_OUT_SENSOR_LOWPRESS                   | Low pressure (kgf/cm²)                  |
+| 0x820A    | VAR_OUT_SENSOR_DISCHARGE1                 | Compresor discharge temperature         |
+| 0x8217    | VAR_OUT_SENSOR_CT1                        | Outdoor current (Amps)                  |
+| 0x8218    | VAR_OUT_SENSOR_CONDOUT                    | Heat exchanger outlet temperature       |
+| 0x821A    | VAR_OUT_SENSOR_SUCTION                    | Compresor suction temperature           |
+| 0x821C    | VAR_OUT_SENSOR_DOUBLETUBE                 | Double tube temperature                 |
+| 0x821E    | VAR_OUT_SENSOR_EVIIN                      | EVI return temperature                  |
+| 0x8220    | VAR_OUT_SENSOR_EVIOUT                     | EVI flow temperature                    |
+| 0x8235    | VAR_OUT_ERROR_CODE                        | Error code (0 = OK)                     |
+| 0x8236    | VAR_OUT_CONTROL_ORDER_CFREQ_COMP1         | Compressor instruction frequency        |
+| 0x8237    | VAR_OUT_CONTROL_TARGET_CFREQ_COMP1        | Compressor target frequency             |
+| 0x8238    | VAR_OUT_CONTROL_CFREQ_COMP1               | Compressor current frequency            |
+| 0x823D    | VAR_OUT_LOAD_FANRPM1                      | Outdoor fan speed (rpm)                 |
+| 0x8280    | VAR_OUT_SENSOR_TOP1                       | TOP1 sensor reading (°C)                |
+| 0x8411    | NASA_OUTDOOR_CONTROL_WATTMETER_1UNIT      | Outdoor unit inst. power consumed (w)   |
+| 0x8413    | LVAR_OUT_CONTROL_WATTMETER_1W_1MIN_SUM    | Heat pump consumed energy (last minute) |
+| 0x8414    | LVAR_OUT_CONTROL_WATTMETER_ALL_UNIT_ACCUM | Heat pump consumed energy (total)       |
 
 Bear in mind that VAR_OUT type NASA Labels mean that you will need to assign the outdoor device to the component as it is the external heat pump unit that reports this data.
 

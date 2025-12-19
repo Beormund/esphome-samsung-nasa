@@ -9,6 +9,8 @@ from esphome.const import (
     DEVICE_CLASS_VOLTAGE,
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_VOLUME_FLOW_RATE,
+    DEVICE_CLASS_PRESSURE,
+    DEVICE_CLASS_FREQUENCY,
     STATE_CLASS_TOTAL_INCREASING,
     STATE_CLASS_NONE,
     STATE_CLASS_MEASUREMENT,
@@ -20,6 +22,7 @@ from esphome.const import (
     UNIT_PERCENT,
     UNIT_REVOLUTIONS_PER_MINUTE,
     UNIT_VOLT,
+    UNIT_HERTZ,
     CONF_ENTITY_CATEGORY,
     CONF_UNIT_OF_MEASUREMENT,
     CONF_DEVICE_CLASS,
@@ -45,6 +48,7 @@ from .const import *
 ICON_ALERT = "mdi:alert"
 ICON_HUMIDITY = "mdi:water-percent"
 ICON_FLOW = "mdi:water-circle"
+ICON_SINE_WAVE= "mdi:sine-wave"
 UNIT_LITRES_PER_MIN = "L/min"
 
 def sensor_defaults(
@@ -54,7 +58,7 @@ def sensor_defaults(
     device_class = DEVICE_CLASS_EMPTY,
     state_class = STATE_CLASS_NONE,
     entity_category = ENTITY_CATEGORY_NONE,
-    filters=[]
+    filters = []
 ):
     return lambda: {
         CONF_UNIT_OF_MEASUREMENT: unit_of_measurement,
@@ -275,6 +279,33 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: temp_sensor_defaults()
     },
+    0x8206: {
+        NASA_LABEL: "VAR_OUT_SENSOR_HIGHPRESS",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement='kgf/cm²',
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_PRESSURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            filters=[{CONF_MULTIPLY: 0.1}]
+        )
+    },
+    0x8208: {
+        NASA_LABEL: "VAR_OUT_SENSOR_LOWPRESS",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement='kgf/cm²',
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_PRESSURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            filters=[{CONF_MULTIPLY: 0.1}]
+        )
+    },
+    0x820A: {
+        NASA_LABEL: "VAR_OUT_SENSOR_DISCHARGE1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
     0x8217: {
         NASA_LABEL: "VAR_OUT_SENSOR_CT1",
         NASA_MODE: CONTROLLER_MODE_STATUS,
@@ -286,6 +317,31 @@ sensors = {
             filters=[{CONF_MULTIPLY: 0.1}]
         )
     },
+    0x8218: {
+        NASA_LABEL: "VAR_OUT_SENSOR_CONDOUT",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x821A: {
+        NASA_LABEL: "VAR_OUT_SENSOR_SUCTION",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x821C: {
+        NASA_LABEL: "VAR_OUT_SENSOR_DOUBLETUBE",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x821E: {
+        NASA_LABEL: "VAR_OUT_SENSOR_EVIIN",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x8220: {
+        NASA_LABEL: "VAR_OUT_SENSOR_EVIOUT",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
     0x8235: {
         NASA_LABEL: "VAR_OUT_ERROR_CODE",
         NASA_MODE: CONTROLLER_MODE_STATUS,
@@ -294,6 +350,39 @@ sensors = {
             icon=ICON_ALERT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             filters=[{CONF_DELTA: 1}]
+        )
+    },
+    0x8236: {
+        NASA_LABEL: "VAR_OUT_CONTROL_ORDER_CFREQ_COMP1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_HERTZ,
+            icon=ICON_SINE_WAVE,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT
+        )
+    },
+    0x8237: {
+        NASA_LABEL: "VAR_OUT_CONTROL_TARGET_CFREQ_COMP1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_HERTZ,
+            icon=ICON_SINE_WAVE,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT
+        )
+    },
+    0x8238: {
+        NASA_LABEL: "VAR_OUT_CONTROL_CFREQ_COMP1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_HERTZ,
+            icon=ICON_SINE_WAVE,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT
         )
     },
     0x823D: {
