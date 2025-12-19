@@ -48,6 +48,7 @@ from .const import *
 ICON_ALERT = "mdi:alert"
 ICON_HUMIDITY = "mdi:water-percent"
 ICON_FLOW = "mdi:water-circle"
+ICON_SINE_WAVE= "mdi:sine-wave"
 UNIT_LITRES_PER_MIN = "L/min"
 
 def sensor_defaults(
@@ -57,7 +58,7 @@ def sensor_defaults(
     device_class = DEVICE_CLASS_EMPTY,
     state_class = STATE_CLASS_NONE,
     entity_category = ENTITY_CATEGORY_NONE,
-    filters=[]
+    filters = []
 ):
     return lambda: {
         CONF_UNIT_OF_MEASUREMENT: unit_of_measurement,
@@ -356,7 +357,7 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: sensor_defaults(
             unit_of_measurement=UNIT_HERTZ,
-            #icon=ICON_FAN,
+            icon=ICON_SINE_WAVE,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_FREQUENCY,
             state_class=STATE_CLASS_MEASUREMENT
@@ -367,7 +368,7 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: sensor_defaults(
             unit_of_measurement=UNIT_HERTZ,
-            #icon=ICON_FAN,
+            icon=ICON_SINE_WAVE,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_FREQUENCY,
             state_class=STATE_CLASS_MEASUREMENT
@@ -378,7 +379,7 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: sensor_defaults(
             unit_of_measurement=UNIT_HERTZ,
-            #icon=ICON_FAN,
+            icon=ICON_SINE_WAVE,
             accuracy_decimals=0,
             device_class=DEVICE_CLASS_FREQUENCY,
             state_class=STATE_CLASS_MEASUREMENT
