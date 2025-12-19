@@ -10,6 +10,7 @@ from esphome.const import (
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_VOLUME_FLOW_RATE,
     DEVICE_CLASS_PRESSURE,
+    DEVICE_CLASS_FREQUENCY,
     STATE_CLASS_TOTAL_INCREASING,
     STATE_CLASS_NONE,
     STATE_CLASS_MEASUREMENT,
@@ -21,6 +22,7 @@ from esphome.const import (
     UNIT_PERCENT,
     UNIT_REVOLUTIONS_PER_MINUTE,
     UNIT_VOLT,
+    UNIT_HERTZ,
     CONF_ENTITY_CATEGORY,
     CONF_UNIT_OF_MEASUREMENT,
     CONF_DEVICE_CLASS,
@@ -347,6 +349,39 @@ sensors = {
             icon=ICON_ALERT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             filters=[{CONF_DELTA: 1}]
+        )
+    },
+    0x8236: {
+        NASA_LABEL: "VAR_OUT_CONTROL_ORDER_CFREQ_COMP1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_HERTZ,
+            #icon=ICON_FAN,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT
+        )
+    },
+    0x8237: {
+        NASA_LABEL: "VAR_OUT_CONTROL_TARGET_CFREQ_COMP1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_HERTZ,
+            #icon=ICON_FAN,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT
+        )
+    },
+    0x8238: {
+        NASA_LABEL: "VAR_OUT_CONTROL_CFREQ_COMP1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_HERTZ,
+            #icon=ICON_FAN,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT
         )
     },
     0x823D: {
