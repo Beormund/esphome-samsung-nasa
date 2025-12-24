@@ -341,7 +341,7 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x8238    | VAR_OUT_CONTROL_CFREQ_COMP1               | Compressor current frequency            |
 | 0x823B    | VAR_OUT_SENSOR_DCLINK_VOLTAGE             | Inverter DC voltage input               |
 | 0x823D    | VAR_OUT_LOAD_FANRPM1                      | Outdoor fan speed (rpm)                 |
-| 0x8240    | NASA_OUTDOOR_ODU_CAPA1                    | Electric capacity of outdoor unit in %  |
+| 0x8240    | NASA_OUTDOOR_ODU_CAPA1                    | Capacity of outdoor unit in %           |
 | 0x8254    | VAR_OUT_SENSOR_IPM1                       | IPM1 sensor reading (°C)                |
 | 0x827A    | VAR_OUT_CONTROL_DSH1                      | DSH1 sensor reading (°C)                |
 | 0x8280    | VAR_OUT_SENSOR_TOP1                       | TOP1 sensor reading (°C)                |
