@@ -345,7 +345,6 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x8254    | VAR_OUT_SENSOR_IPM1                       | IPM1 sensor reading (°C)                |
 | 0x827A    | VAR_OUT_CONTROL_DSH1                      | DSH1 sensor reading (°C)                |
 | 0x8280    | VAR_OUT_SENSOR_TOP1                       | TOP1 sensor reading (°C)                |
-| 0x829a    | VAR_OUT_SENSOR_SUCTION2                   | SUCTION2 sensor reading (°C)            |
 | 0x829F    | VAR_OUT_SENSOR_SAT_TEMP_HIGH_PRESSURE     | High pressure saturation temperature    |
 | 0x82A0    | VAR_OUT_SENSOR_SAT_TEMP_LOW_PRESSURE      | Low pressure saturation temperature     |
 | 0x82DF    | VAR_OUT_SENSOR_TW1                        | TW1 sensor reading (°C)(same as 0x4238) |

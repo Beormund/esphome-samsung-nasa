@@ -448,11 +448,6 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: temp_sensor_defaults()
     },
-    0x829a: {
-        NASA_LABEL: "VAR_OUT_SENSOR_SUCTION2",
-        NASA_MODE: CONTROLLER_MODE_STATUS,
-        CONF_DEFAULTS: temp_sensor_defaults()
-    },
     0x829F: {
         NASA_LABEL: "VAR_OUT_SENSOR_SAT_TEMP_HIGH_PRESSURE",
         NASA_MODE: CONTROLLER_MODE_STATUS,
