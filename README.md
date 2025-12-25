@@ -297,6 +297,7 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | NASA Code | NASA Label                                | Description                             |
 |-----------|-------------------------------------------|-----------------------------------------|
 | 0x24FC    | LVAR_NM_OUT_SENSOR_VOLTAGE                | Heat pump voltage                       |
+| 0x4002    | ENUM_IN_OPERATION_MODE_REAL               | Current operation mode                  |
 | 0x4038    | ENUM_IN_STATE_HUMIDITY_PERCENT            | Only available with A/C units           |
 | 0x4067    | ENUM_IN_3WAY_VALVE                        | DHW valve (0=heat, 1=tank)              |
 | 0x4069    | ENUM_IN_THERMOSTAT1                       | Zone 1 input signal from external stat  |
@@ -313,7 +314,8 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x4238    | VAR_IN_TEMP_WATER_OUT_F                   | Flow temperature                        |
 | 0x4203    | VAR_IN_TEMP_ROOM_F                        | Zone 1 room temperature                 |
 | 0x427F    | VAR_IN_TEMP_WATER_LAW_F                   | Water law target flow temperature       |
-| 0x4204    | VAR_IN_TEMP_ZONE2_F                       | Zone 2 room temperature                 |
+| 0x42D4    | VAR_IN_TEMP_ZONE2_F                       | Zone 2 room temperature                 |
+| 0x42E8    | VAR_IN_FLOW_SENSOR_VOLTAGE                | Flow sensor voltage                     |
 | 0x42E9    | VAR_IN_FLOW_SENSOR_CALC                   | Flow rate sensor (l/min)                |
 | 0x4284    | NASA_INDOOR_POWER_CONSUMPTION             | Indoor unit power consumption           |
 | 0x4423    | LVAR_IN_MINS_SINCE_INST                   | Mins since installation (unit: days)    |
@@ -337,8 +339,16 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x8236    | VAR_OUT_CONTROL_ORDER_CFREQ_COMP1         | Compressor instruction frequency        |
 | 0x8237    | VAR_OUT_CONTROL_TARGET_CFREQ_COMP1        | Compressor target frequency             |
 | 0x8238    | VAR_OUT_CONTROL_CFREQ_COMP1               | Compressor current frequency            |
+| 0x823B    | VAR_OUT_SENSOR_DCLINK_VOLTAGE             | Inverter DC voltage input               |
 | 0x823D    | VAR_OUT_LOAD_FANRPM1                      | Outdoor fan speed (rpm)                 |
+| 0x8240    | NASA_OUTDOOR_ODU_CAPA1                    | Capacity of outdoor unit in %           |
+| 0x8254    | VAR_OUT_SENSOR_IPM1                       | IPM1 sensor reading (°C)                |
+| 0x827A    | VAR_OUT_CONTROL_DSH1                      | DSH1 sensor reading (°C)                |
 | 0x8280    | VAR_OUT_SENSOR_TOP1                       | TOP1 sensor reading (°C)                |
+| 0x829F    | VAR_OUT_SENSOR_SAT_TEMP_HIGH_PRESSURE     | High pressure saturation temperature    |
+| 0x82A0    | VAR_OUT_SENSOR_SAT_TEMP_LOW_PRESSURE      | Low pressure saturation temperature     |
+| 0x82DF    | VAR_OUT_SENSOR_TW1                        | TW1 sensor reading (°C)(same as 0x4238) |
+| 0x82E0    | VAR_OUT_SENSOR_TW2                        | TW2 sensor reading (°C)(same as 0x4236) |
 | 0x8411    | NASA_OUTDOOR_CONTROL_WATTMETER_1UNIT      | Outdoor unit inst. power consumed (w)   |
 | 0x8413    | LVAR_OUT_CONTROL_WATTMETER_1W_1MIN_SUM    | Heat pump consumed energy (last minute) |
 | 0x8414    | LVAR_OUT_CONTROL_WATTMETER_ALL_UNIT_ACCUM | Heat pump consumed energy (total)       |

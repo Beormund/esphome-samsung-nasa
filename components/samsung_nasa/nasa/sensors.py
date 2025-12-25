@@ -93,6 +93,11 @@ sensors = {
             state_class=STATE_CLASS_MEASUREMENT        
         )
     },
+    0x4002: {
+        NASA_LABEL: "ENUM_IN_OPERATION_MODE_REAL",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults()
+    },
     0x4038: {
         NASA_LABEL: "ENUM_IN_STATE_HUMIDITY_PERCENT",
         NASA_MODE: CONTROLLER_MODE_STATUS,
@@ -187,6 +192,18 @@ sensors = {
         NASA_LABEL: "VAR_IN_TEMP_ZONE2_F",
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x42E8: {
+        NASA_LABEL: "VAR_IN_FLOW_SENSOR_VOLTAGE",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_VOLT,
+            icon=ICON_FLASH,
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT,
+            filters=[{CONF_MULTIPLY: 0.1}]
+        )
     },
     0x42E9: {
         NASA_LABEL: "VAR_IN_FLOW_SENSOR_CALC",
@@ -385,6 +402,17 @@ sensors = {
             state_class=STATE_CLASS_MEASUREMENT
         )
     },
+    0x823B: {
+        NASA_LABEL: "VAR_OUT_SENSOR_DCLINK_VOLTAGE",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_VOLT,
+            icon=ICON_FLASH,
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_VOLTAGE,
+            state_class=STATE_CLASS_MEASUREMENT
+        )
+    },
     0x823D: {
         NASA_LABEL: "VAR_OUT_LOAD_FANRPM1",
         NASA_MODE: CONTROLLER_MODE_STATUS,
@@ -395,8 +423,53 @@ sensors = {
             state_class=STATE_CLASS_MEASUREMENT
         )
     },
+    0x8240: {
+        NASA_LABEL: "NASA_OUTDOOR_ODU_CAPA1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_PERCENT,
+            icon=ICON_FLASH,
+            accuracy_decimals=0,
+            state_class=STATE_CLASS_MEASUREMENT
+        )
+    },
+    0x8254: {
+        NASA_LABEL: "VAR_OUT_SENSOR_IPM1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x827A: {
+        NASA_LABEL: "VAR_OUT_CONTROL_DSH1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
     0x8280: {
         NASA_LABEL: "VAR_OUT_SENSOR_TOP1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x829F: {
+        NASA_LABEL: "VAR_OUT_SENSOR_SAT_TEMP_HIGH_PRESSURE",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x82A0: {
+        NASA_LABEL: "VAR_OUT_SENSOR_SAT_TEMP_LOW_PRESSURE",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x82DE: {
+        NASA_LABEL: "VAR_OUT_SENSOR_EVAIN",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x82DF: {
+        NASA_LABEL: "VAR_OUT_SENSOR_TW1",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x82E0: {
+        NASA_LABEL: "VAR_OUT_SENSOR_TW2",
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: temp_sensor_defaults()
     },
