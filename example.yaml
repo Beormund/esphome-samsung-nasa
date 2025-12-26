@@ -180,15 +180,7 @@ sensor:
     nasa_device_id: nasa_device_1
     name: 3-Way Valve
     internal: true
-    id: three_way_valve     
-  # 0x4089
-  # 0 = off; 1 =  on
-  - platform: samsung_nasa
-    message: 0x4089
-    nasa_device_id: nasa_device_1
-    name: Primary Water Pump
-    internal: true
-    id: primary_water_pump
+    id: three_way_valve
 
   # Error Status
   - platform: samsung_nasa
@@ -309,6 +301,14 @@ time:
     timezone: "Europe/London"
 
 binary_sensor:
+  # 0x4089
+  # 0 = off; 1 =  on
+  - platform: samsung_nasa
+    message: 0x4089
+    nasa_device_id: nasa_device_1
+    name: Primary Water Pump
+    internal: true
+    id: primary_water_pump
   - platform: samsung_nasa
     message: 0x8010
     nasa_device_id: nasa_device_2

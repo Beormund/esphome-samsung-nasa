@@ -36,6 +36,7 @@ ICON_LIQUID = "mdi:cup-water"
 ICON_VAPOUR = "mdi:waves-arrow-up"
 ICON_THERMOSTAT = "mdi:thermostat-cog"
 ICON_DEFROST = "mdi:snowflake-melt"
+ICON_PUMP = "mdi:pump"
 
 binary_sensors = {
     0x4028: {
@@ -75,6 +76,11 @@ binary_sensors = {
             icon = ICON_HEAT,
             device_class = DEVICE_CLASS_HEAT
         )
+    },
+    0x4089: {
+        NASA_LABEL: "ENUM_IN_STATE_WATER_PUMP",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: binary_sensor_defaults(icon = ICON_PUMP)
     },
     0x8010: {
         NASA_LABEL: "ENUM_OUT_LOAD_COMP1",
