@@ -54,6 +54,15 @@ binary_sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: binary_sensor_defaults(icon = ICON_VALVE)
     },
+    0x406C: {
+        CONF_ICON: ICON_HEAT,
+        NASA_LABEL: "ENUM_IN_BACKUP_HEATER",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: binary_sensor_defaults(
+            icon = ICON_HEAT,
+            device_class = DEVICE_CLASS_HEAT
+        )
+    },
     0x406F: {
         NASA_LABEL: "ENUM_IN_REFERENCE_EHS_TEMP",
         NASA_MODE: CONTROLLER_MODE_STATUS,
@@ -61,15 +70,6 @@ binary_sensors = {
     },
     0x4087: {
         NASA_LABEL: "ENUM_IN_BOOSTER_HEATER",
-        NASA_MODE: CONTROLLER_MODE_STATUS,
-        CONF_DEFAULTS: binary_sensor_defaults(
-            icon = ICON_HEAT,
-            device_class = DEVICE_CLASS_HEAT
-        )
-    },
-    0x406C: {
-        CONF_ICON: ICON_HEAT,
-        NASA_LABEL: "ENUM_IN_BACKUP_HEATER",
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: binary_sensor_defaults(
             icon = ICON_HEAT,

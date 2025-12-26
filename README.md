@@ -364,9 +364,9 @@ Binary sensors are read-only. They report boolean type data such as Yes/No, On/O
 | 0x4028    | ENUM_IN_STATE_THERMO              | Heating Status: 0 = Idle; 1 = Heating    |
 | 0x402E    | ENUM_IN_STATE_DEFROST_MODE        | Defrost Status: 0 = Idle; 1 = Defrosting |
 | 0x4067    | ENUM_IN_3WAY_VALVE                | 3-Way Valve: 0 = Heating; 1 = Tank       |
+| 0x406C    | ENUM_IN_BACKUP_HEATER             | Backup Heater: 0 = Off; 1 = On           |
 | 0x406F    | ENUM_IN_REFERENCE_EHS_TEMP        | Reference Temp: 0 = Room; 1 = Water Out  |
 | 0x4087    | ENUM_IN_BOOSTER_HEATER            | Booster Heater: 0 = Off; 1 = On          |
-| 0x406C    | ENUM_IN_BACKUP_HEATER             | Backup Heater: 0 = Off; 1 = On           |
 | 0x8010    | ENUM_OUT_LOAD_COMP1               | Compressor Running: 0 = Off; 1 = On      |
 | 0x8017    | ENUM_OUT_LOAD_HOTGAS              | Hot Gas 1 Status: 0 = Off; 1 = On        |
 | 0x8019    | ENUM_OUT_LOAD_LIQUID              | Liquid Valve Status: 0 = Off; 1 = On     |
