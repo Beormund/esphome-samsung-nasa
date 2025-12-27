@@ -302,7 +302,6 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x4067    | ENUM_IN_3WAY_VALVE                        | DHW valve (0=heat, 1=tank)              |
 | 0x4069    | ENUM_IN_THERMOSTAT1                       | Zone 1 input signal from external stat  |
 | 0x406A    | ENUM_IN_THERMOSTAT2                       | Zone 2 input signal from external stat  |
-| 0x4089    | ENUM_IN_STATE_WATER_PUMP                  | Primary water pump status               |
 | 0x408A    | ENUM_IN_2WAY_VALVE                        | Zone control valve status               |
 | 0x40C4    | ENUM_IN_WATERPUMP_PWM_VALUE               | PWM Water Pump Status (%)               |
 | 0x4202    | VAR_IN_DHW_HEAT_UNTIL                     | Heat DHW until this temperature         |
@@ -359,18 +358,22 @@ Bear in mind that VAR_OUT type NASA Labels mean that you will need to assign the
 
 Binary sensors are read-only. They report boolean type data such as Yes/No, On/Off, Open/Closed.
 
-| NASA Code | NASA Label                        | Description                            |
-|-----------|-----------------------------------|--------------------------------------- |
-| 0x4067    | ENUM_IN_3WAY_VALVE                | 3-Way Valve: 0 = Heating; 1 = Tank     |
-| 0x4087    | ENUM_IN_BOOSTER_HEATER            | Booster Heater: 0 = Off; 1 = On        |
-| 0x406C    | ENUM_IN_BACKUP_HEATER             | Backup Heater: 0 = Off; 1 = On         |
-| 0x8010    | ENUM_OUT_LOAD_COMP1               | Compressor Running: 0 = Off; 1 = On    |
-| 0x8017    | ENUM_OUT_LOAD_HOTGAS              | Hot Gas 1 Status: 0 = Off; 1 = On      |
-| 0x8019    | ENUM_OUT_LOAD_LIQUID              | Liquid Valve Status: 0 = Off; 1 = On   |
-| 0x8021    | ENUM_OUT_LOAD_EVI_BYPASS          | EVI Bypass: 0 = Off; 1 = On            |
-| 0x801A    | ENUM_OUT_LOAD_4WAY                | 4-Way Valve Status: 0 = Off; 1 = On    |
-| 0x80AF    | ENUM_OUT_LOAD_BASEHEATER          | Base Heater Status: 0 = Off; 1 = On    |
-| 0x80D7    | ENUM_OUT_LOAD_PHEHEATER           | PHE Heater Status: 0 = Off; 1 = On     |
+| NASA Code | NASA Label                        | Description                                |
+|-----------|-----------------------------------|--------------------------------------------|
+| 0x4028    | ENUM_IN_STATE_THERMO              | Heating Status: 0 = Idle; 1 = Heating      |
+| 0x402E    | ENUM_IN_STATE_DEFROST_MODE        | Defrost Status: 0 = Idle; 1 = Defrosting   |
+| 0x4067    | ENUM_IN_3WAY_VALVE                | 3-Way Valve: 0 = Heating; 1 = Tank         |
+| 0x406C    | ENUM_IN_BACKUP_HEATER             | Backup Heater: 0 = Off; 1 = On             |
+| 0x406F    | ENUM_IN_REFERENCE_EHS_TEMP        | Reference Temp: 0 = Room; 1 = Water Out    |
+| 0x4087    | ENUM_IN_BOOSTER_HEATER            | Booster Heater: 0 = Off; 1 = On            |
+| 0x4089    | ENUM_IN_STATE_WATER_PUMP          | Primary Water Pump Status: 0 = Off; 1 = On |
+| 0x8010    | ENUM_OUT_LOAD_COMP1               | Compressor Running: 0 = Off; 1 = On        |
+| 0x8017    | ENUM_OUT_LOAD_HOTGAS              | Hot Gas 1 Status: 0 = Off; 1 = On          |
+| 0x8019    | ENUM_OUT_LOAD_LIQUID              | Liquid Valve Status: 0 = Off; 1 = On       |
+| 0x8021    | ENUM_OUT_LOAD_EVI_BYPASS          | EVI Bypass: 0 = Off; 1 = On                |
+| 0x801A    | ENUM_OUT_LOAD_4WAY                | 4-Way Valve Status: 0 = Off; 1 = On        |
+| 0x80AF    | ENUM_OUT_LOAD_BASEHEATER          | Base Heater Status: 0 = Off; 1 = On        |
+| 0x80D7    | ENUM_OUT_LOAD_PHEHEATER           | PHE Heater Status: 0 = Off; 1 = On         |
 
 ```yaml
 binary_sensor:
