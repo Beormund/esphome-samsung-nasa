@@ -17,6 +17,7 @@ from esphome.const import (
     UNIT_AMPERE,
     UNIT_CELSIUS,
     UNIT_WATT,
+    UNIT_KILOWATT,
     UNIT_KILOWATT_HOURS,
     UNIT_EMPTY,
     UNIT_PERCENT,
@@ -422,10 +423,11 @@ sensors = {
         NASA_LABEL: "NASA_OUTDOOR_ODU_CAPA1",
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: sensor_defaults(
-            unit_of_measurement=UNIT_PERCENT,
+            unit_of_measurement=UNIT_KILOWATT,
             icon=ICON_FLASH,
-            accuracy_decimals=0,
-            state_class=STATE_CLASS_MEASUREMENT
+            accuracy_decimals=1,
+            state_class=STATE_CLASS_MEASUREMENT,
+            filters=[{CONF_MULTIPLY: 0.1}]
         )
     },
     0x8254: {
