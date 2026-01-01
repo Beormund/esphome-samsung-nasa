@@ -106,7 +106,7 @@ selects = {
         NASA_LABEL: "VAR_IN_FSV_3042",
         NASA_MODE: CONTROLLER_MODE_FSV,
         CONF_DATA: fsv_select_data(3042, [
-            "Sunday", 'Monday', "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+            "Sunday", 'Monday', "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "All"
         ]),
         CONF_DEFAULTS: select_defaults()           
     },
