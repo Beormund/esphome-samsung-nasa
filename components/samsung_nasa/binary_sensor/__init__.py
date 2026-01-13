@@ -25,16 +25,16 @@ def validate(config):
         return config
 
     nasa_message = config[NASA_MESSAGE]
-    nasa_sensor = binary_sensors.get(nasa_message)  # wie im Original: binary_sensors statt sensors
+    nasa_binary_sensor = binary_sensors.get(nasa_message)
 
-    # --- Sensor gefunden → Auto-Config
-    if nasa_sensor is not None:
+    # --- Sensor found → Auto-Config
+    if nasa_binary_sensor is not None:
         # Required sensor values
-        config[NASA_LABEL] = nasa_sensor.get(NASA_LABEL)
-        config[NASA_MODE] = nasa_sensor.get(NASA_MODE)
+        config[NASA_LABEL] = nasa_binary_sensor.get(NASA_LABEL)
+        config[NASA_MODE] = nasa_binary_sensor.get(NASA_MODE)
 
         # Load preset values (if available)
-        defaults_fn = nasa_sensor.get(CONF_DEFAULTS)
+        defaults_fn = nasa_binary_sensor.get(CONF_DEFAULTS)
         if callable(defaults_fn):
             defaults = defaults_fn() or {}
 
@@ -42,15 +42,15 @@ def validate(config):
             default_filters = defaults.get(CONF_FILTERS, [])
             user_filters = config.get(CONF_FILTERS, [])
 
-            # defensive copy
+            # Defensive copy to avoid modifying originals
             filters = list(default_filters) + list(user_filters)
 
-            # Merge defaults into config (excluding filters)
+            # Merge defaults into config (excluding filters) only if not set
             for key, value in defaults.items():
                 if key != CONF_FILTERS:
                     config.setdefault(key, value)
 
-            # Explicitly set filters
+            # Explicitly set merged filters
             config[CONF_FILTERS] = filters
 
     # --- Unknown sensor → User-Config
@@ -61,7 +61,7 @@ def validate(config):
         )
 
     # --- Logging ---
-    label = "Auto" if nasa_sensor else "User"
+    label = "Auto" if nasa_binary_sensor else "User"
     cv._LOGGER.log(
         cv.logging.INFO,
         "{} configured NASA message {} as binary sensor component"
