@@ -21,25 +21,53 @@ AUTO_LOAD = ["samsung_nasa"]
 DEPENDENCIES = ["samsung_nasa"]
 
 def validate(config):
-    if NASA_MESSAGE in config:
-        if (nasa_binary_sensor := binary_sensors.get(config[NASA_MESSAGE])) is not None:
-            config[NASA_LABEL] = nasa_binary_sensor[NASA_LABEL]
-            config[NASA_MODE] = nasa_binary_sensor[NASA_MODE]
-            if (conf_defaults := nasa_binary_sensor.get(CONF_DEFAULTS)) is not None:
-                conf_defaults = conf_defaults()
-                if (filters := conf_defaults.get(CONF_FILTERS)) is not None:
-                    filters.extend(config.get(CONF_FILTERS,[]))
-                for key, value in conf_defaults.items():
-                    config[key] = value
-                config[CONF_FILTERS] = filters
-        elif NASA_LABEL not in config:
-            config[NASA_LABEL] = nasa_labels.get(config[NASA_MESSAGE], "NASA_UNKNOWN_LABEL")                
-        label = "Auto" if nasa_binary_sensor else "User"
-        cv._LOGGER.log(
-                cv.logging.INFO, 
-                "{} configured NASA message {} as binary sensor component"
-                .format(label, config[NASA_MESSAGE])
+    if NASA_MESSAGE not in config:
+        return config
+
+    nasa_message = config[NASA_MESSAGE]
+    nasa_sensor = binary_sensors.get(nasa_message)  # wie im Original: binary_sensors statt sensors
+
+    # --- Sensor gefunden → Auto-Config
+    if nasa_sensor is not None:
+        # Required sensor values
+        config[NASA_LABEL] = nasa_sensor.get(NASA_LABEL)
+        config[NASA_MODE] = nasa_sensor.get(NASA_MODE)
+
+        # Load preset values (if available)
+        defaults_fn = nasa_sensor.get(CONF_DEFAULTS)
+        if callable(defaults_fn):
+            defaults = defaults_fn() or {}
+
+            # --- FILTERS: merge filters safely ---
+            default_filters = defaults.get(CONF_FILTERS, [])
+            user_filters = config.get(CONF_FILTERS, [])
+
+            # defensive copy
+            filters = list(default_filters) + list(user_filters)
+
+            # Merge defaults into config (excluding filters)
+            for key, value in defaults.items():
+                if key != CONF_FILTERS:
+                    config.setdefault(key, value)
+
+            # Explicitly set filters
+            config[CONF_FILTERS] = filters
+
+    # --- Unknown sensor → User-Config
+    else:
+        config.setdefault(
+            NASA_LABEL,
+            nasa_labels.get(nasa_message, "NASA_UNKNOWN_LABEL")
         )
+
+    # --- Logging ---
+    label = "Auto" if nasa_sensor else "User"
+    cv._LOGGER.log(
+        cv.logging.INFO,
+        "{} configured NASA message {} as binary sensor component"
+        .format(label, nasa_message)
+    )
+
     return config
 
 nasa_schema = cv.All(
