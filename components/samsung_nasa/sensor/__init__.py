@@ -45,11 +45,8 @@ def validate(config):
             # use defensive copies
             filters = list(default_filters) + list(user_filters)
 
-            # Merge defaults into config (excluding filters)
-#            for key, value in defaults.items():
-#                if key != CONF_FILTERS:
-#                    config[key] = value
-            # --- Defaults nur setzen, wenn User nichts definiert hat ---
+            # Merge defaults into config (excluding filters) and
+            # apply defaults only if the user did not define a value ---            
             for key, value in defaults.items():
                 if key != CONF_FILTERS:
                     config.setdefault(key, value)
