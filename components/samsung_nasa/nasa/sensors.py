@@ -125,6 +125,11 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: sensor_defaults()
     },
+    0x4089: {
+        NASA_LABEL: "ENUM_IN_STATE_WATER_PUMP",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults()
+    },
     0x408A: {
         NASA_LABEL: "ENUM_IN_2WAY_VALVE",
         NASA_MODE: CONTROLLER_MODE_STATUS,
