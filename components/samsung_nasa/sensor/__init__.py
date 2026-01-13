@@ -46,10 +46,14 @@ def validate(config):
             filters = list(default_filters) + list(user_filters)
 
             # Merge defaults into config (excluding filters)
+#            for key, value in defaults.items():
+#                if key != CONF_FILTERS:
+#                    config[key] = value
+            # --- Defaults nur setzen, wenn User nichts definiert hat ---
             for key, value in defaults.items():
                 if key != CONF_FILTERS:
-                    config[key] = value
-
+                    config.setdefault(key, value)
+                    
             # Explicitly set result
             config[CONF_FILTERS] = filters
 
