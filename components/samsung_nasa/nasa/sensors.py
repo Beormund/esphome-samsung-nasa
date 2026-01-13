@@ -51,6 +51,7 @@ ICON_HUMIDITY = "mdi:water-percent"
 ICON_FLOW = "mdi:water-circle"
 ICON_SINE_WAVE= "mdi:sine-wave"
 UNIT_LITRES_PER_MIN = "L/min"
+UNIT_KILOPASCAL = "kPa"
 
 def sensor_defaults(
     unit_of_measurement = UNIT_EMPTY,
@@ -296,22 +297,22 @@ sensors = {
         NASA_LABEL: "VAR_OUT_SENSOR_HIGHPRESS",
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: sensor_defaults(
-            unit_of_measurement='kgf/cm²',
-            accuracy_decimals=1,
+            unit_of_measurement=UNIT_KILOPASCAL,
+            accuracy_decimals=2,
             device_class=DEVICE_CLASS_PRESSURE,
             state_class=STATE_CLASS_MEASUREMENT,
-            filters=[{CONF_MULTIPLY: 0.1}]
+            filters=[{CONF_MULTIPLY: 9.80665}]
         )
     },
     0x8208: {
         NASA_LABEL: "VAR_OUT_SENSOR_LOWPRESS",
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: sensor_defaults(
-            unit_of_measurement='kgf/cm²',
-            accuracy_decimals=1,
+            unit_of_measurement=UNIT_KILOPASCAL,
+            accuracy_decimals=2,
             device_class=DEVICE_CLASS_PRESSURE,
             state_class=STATE_CLASS_MEASUREMENT,
-            filters=[{CONF_MULTIPLY: 0.1}]
+            filters=[{CONF_MULTIPLY: 9.80665}]
         )
     },
     0x820A: {

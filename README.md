@@ -325,8 +325,8 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x8001    | ENUM_OUT_OPERATION_ODU_MODE               | Outdoor unit driving Modes              |
 | 0x8061    | ENUM_OUT_DEICE_STEP_INDOOR                | Defrost operation steps                 |
 | 0x8204    | VAR_OUT_SENSOR_AIROUT                     | Outdoor temperature                     |
-| 0x8206    | VAR_OUT_SENSOR_HIGHPRESS                  | High pressure (kgf/cm²)                 |
-| 0x8208    | VAR_OUT_SENSOR_LOWPRESS                   | Low pressure (kgf/cm²)                  |
+| 0x8206    | VAR_OUT_SENSOR_HIGHPRESS                  | High pressure (kPa)                     |
+| 0x8208    | VAR_OUT_SENSOR_LOWPRESS                   | Low pressure (kPa)                      |
 | 0x820A    | VAR_OUT_SENSOR_DISCHARGE1                 | Compresor discharge temperature         |
 | 0x8217    | VAR_OUT_SENSOR_CT1                        | Outdoor current (Amps)                  |
 | 0x8218    | VAR_OUT_SENSOR_CONDOUT                    | Heat exchanger outlet temperature       |
