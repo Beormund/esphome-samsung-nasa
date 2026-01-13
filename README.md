@@ -302,6 +302,7 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x4067    | ENUM_IN_3WAY_VALVE                        | DHW valve (0=heat, 1=tank)              |
 | 0x4069    | ENUM_IN_THERMOSTAT1                       | Zone 1 input signal from external stat  |
 | 0x406A    | ENUM_IN_THERMOSTAT2                       | Zone 2 input signal from external stat  |
+| 0x4089    | ENUM_IN_STATE_WATER_PUMP                  | Water pump (0=Off, 1=On)                |
 | 0x408A    | ENUM_IN_2WAY_VALVE                        | Zone control valve status               |
 | 0x40C4    | ENUM_IN_WATERPUMP_PWM_VALUE               | PWM Water Pump Status (%)               |
 | 0x4202    | VAR_IN_DHW_HEAT_UNTIL                     | Heat DHW until this temperature         |
