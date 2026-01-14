@@ -24,7 +24,7 @@ from .. import (
 AUTO_LOAD = ["samsung_nasa"]
 DEPENDENCIES = ["samsung_nasa"]
 
-def validate_switch(config, switches_map=None, fsv_map=None, available_as_func=None):
+def validate(config, switches_map=None, fsv_map=None, available_as_func=None):
     """
     Validate a NASA switch configuration.
     Optional user-defined mappings and filter function can be provided.
