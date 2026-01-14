@@ -29,42 +29,76 @@ from .. import (
 AUTO_LOAD = ["samsung_nasa"]
 DEPENDENCIES = ["samsung_nasa"]
 
-def validate(config):
+def validate(config, selects_map=None, fsv_map=None, available_as_func=None):
+    """
+    Validate a NASA select configuration.
+    Optional user-defined mappings and filter function can be provided.
+    """
+    selects_map = selects_map or selects
+    fsv_map = fsv_map or fsv
+    available_as_func = available_as_func or available_as
+
+    nasa_select = None
+
+    # Resolve NASA_MESSAGE
     if (message := config.get(NASA_MESSAGE)) is not None:
-        if (nasa_select := selects.get(message)) is None:
-            types = available_as(message)
-            if len(types):
-                raise cv.Invalid("Wrong component for message {}. Re-implement as {}".format(message, ', '.join(types)))
-            else:
-                raise cv.Invalid("Invalid NASA message: {}".format(message))
+        nasa_select = selects_map.get(message)
+        if nasa_select is None:
+            types = available_as_func(message)
+            if types:
+                raise cv.Invalid(
+                    f"Wrong component type for NASA message {message}. "
+                    f"Please re-implement as: {', '.join(types)}"
+                )
+            raise cv.Invalid(f"Invalid NASA message: {message}")
+
+    # Resolve NASA_FSV
     elif (fsvcode := config.get(NASA_FSV)) is not None:
-        if (number := fsv.get(fsvcode)) is None:
-           raise cv.Invalid("Invalid FSV code: {}".format(fsvcode))
-        elif (nasa_select := selects.get(number)) is None:
-            types = available_as(number)
-            if len(types):
-                raise cv.Invalid("Wrong component for FSV {}. Re-implement as {}".format(fsvcode, ', '.join(types)))
-            else:
-                raise cv.Invalid("Component could not be found for FSV {}".format(fsvcode))
-        else:
-            config[NASA_MESSAGE] = cv.hex_int(number)
-    config[NASA_LABEL] = nasa_select[NASA_LABEL]
-    config[NASA_MODE] = nasa_select[NASA_MODE]
-    entries = nasa_select[CONF_DEFAULTS]() | nasa_select[CONF_DATA]()
+        number = fsv_map.get(fsvcode)
+        if number is None:
+            raise cv.Invalid(f"Invalid FSV code: {fsvcode}")
+
+        nasa_select = selects_map.get(number)
+        if nasa_select is None:
+            types = available_as_func(number)
+            if types:
+                raise cv.Invalid(
+                    f"Wrong component type for FSV {fsvcode}. "
+                    f"Please re-implement as: {', '.join(types)}"
+                )
+            raise cv.Invalid(f"No suitable component found for FSV code {fsvcode}")
+        config[NASA_MESSAGE] = cv.hex_int(number)
+
+    # Ensure a valid select was resolved
+    if not nasa_select:
+        raise cv.Invalid("Unable to determine a valid NASA select from the configuration")
+
+    # Apply static metadata (do not overwrite user values)
+    config.setdefault(NASA_LABEL, nasa_select[NASA_LABEL])
+    config.setdefault(NASA_MODE, nasa_select[NASA_MODE])
+
+    # Merge defaults and data entries
+    entries = nasa_select.get(CONF_DEFAULTS, lambda: {})() | nasa_select.get(CONF_DATA, lambda: {})()
     for key, value in entries.items():
-        config[key] = value
+        config.setdefault(key, value)
+
+    # Convert lambda strings to Lambda objects
     if (nasa_lambda_from := config.get(NASA_LAMBDA_FROM)) is not None:
-         config[NASA_LAMBDA_FROM] = Lambda(nasa_lambda_from)
+        config[NASA_LAMBDA_FROM] = Lambda(nasa_lambda_from)
+
     if (nasa_lambda_to := config.get(NASA_LAMBDA_TO)) is not None:
         config[NASA_LAMBDA_TO] = Lambda(nasa_lambda_to)
+
+    # Logging (unchanged)
     if (fsvcode := config.get(NASA_FSV)) is not None:
         log_fsv = "[FSV {}]".format(fsvcode)
     else:
-        log_fsv = ""        
+        log_fsv = ""
     cv._LOGGER.log(
         cv.logging.INFO, 
         "Auto configured NASA message {} as select component {}".format(config[NASA_MESSAGE], log_fsv)
-    )      
+    )
+
     return config
 
 nasa_schema = cv.All(
