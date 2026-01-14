@@ -30,42 +30,81 @@ from ..nasa.numbers import numbers
 AUTO_LOAD = ["samsung_nasa"]
 DEPENDENCIES = ["samsung_nasa"]
 
-def validate(config):
+def validate(
+    config,
+    numbers_map=None,        # User-defined mapping table for NASA messages
+    fsv_map=None,            # User-defined mapping table for FSV codes
+    available_as_func=None   # Function to check alternative component types
+):
+    # Fallback to defaults if nothing is provided
+    numbers_map = numbers_map or numbers
+    fsv_map = fsv_map or fsv
+    available_as_func = available_as_func or available_as
+
+    nasa_number = None
+
+    # Check NASA_MESSAGE
     if (message := config.get(NASA_MESSAGE)) is not None:
-        if (nasa_number := numbers.get(message)) is None:
-            types = available_as(message)
-            if len(types):
-                raise cv.Invalid("Wrong component for message {}. Re-implement as {}".format(message, ', '.join(types)))
+        if (nasa_number := numbers_map.get(message)) is None:
+            types = available_as_func(message)
+            if types:
+                raise cv.Invalid(
+                    f"Wrong component type for NASA message {message}. "
+                    f"Please re-implement it as: {', '.join(types)}"
+                )
             else:
-                raise cv.Invalid("Invalid NASA message: {}".format(message))
+                raise cv.Invalid(f"Invalid NASA message: {message}")
+
+    # Check NASA_FSV
     elif (fsvcode := config.get(NASA_FSV)) is not None:
-        if (number := fsv.get(fsvcode)) is None:
-           raise cv.Invalid("Invalid FSV code: {}".format(fsvcode))
-        elif (nasa_number := numbers.get(number)) is None:
-            types = available_as(number)
-            if len(types):
-                raise cv.Invalid("Wrong component for FSV {}. Re-implement as {}".format(fsvcode, ', '.join(types)))
+        if (number := fsv_map.get(fsvcode)) is None:
+            raise cv.Invalid(f"Invalid FSV code: {fsvcode}")
+        elif (nasa_number := numbers_map.get(number)) is None:
+            types = available_as_func(number)
+            if types:
+                raise cv.Invalid(
+                    f"Wrong component type for FSV {fsvcode}. "
+                    f"Please re-implement it as: {', '.join(types)}"
+                )
             else:
-                raise cv.Invalid("Component could not be found for FSV {}".format(fsvcode))
+                raise cv.Invalid(
+                    f"No suitable component found for FSV code {fsvcode}"
+                )
         else:
             config[NASA_MESSAGE] = cv.hex_int(number)
+
+    # Ensure a valid NASA number was resolved
+    if not nasa_number:
+        raise cv.Invalid("Unable to determine a valid NASA message from the configuration")
+
+    # Apply static metadata
     config[NASA_LABEL] = nasa_number[NASA_LABEL]
     config[NASA_MODE] = nasa_number[NASA_MODE]
-    entries = nasa_number[CONF_DEFAULTS]() | nasa_number[CONF_DATA]()
+
+    # Merge default and data entries
+    entries = (
+        nasa_number.get(CONF_DEFAULTS, lambda: {})()
+        | nasa_number.get(CONF_DATA, lambda: {})()
+    )
     for key, value in entries.items():
-        config[key] = value
+        config.setdefault(key, value)
+
+    # Convert lambda strings to Lambda objects if present
     if (nasa_lambda_from := config.get(NASA_LAMBDA_FROM)) is not None:
-         config[NASA_LAMBDA_FROM] = Lambda(nasa_lambda_from)
+        config[NASA_LAMBDA_FROM] = Lambda(nasa_lambda_from)
+
     if (nasa_lambda_to := config.get(NASA_LAMBDA_TO)) is not None:
         config[NASA_LAMBDA_TO] = Lambda(nasa_lambda_to)
-    if (fsvcode := config.get(NASA_FSV)) is not None:
-        log_fsv = "[FSV {}]".format(fsvcode)
-    else:
-        log_fsv = ""
+
+    # Logging
+    log_fsv = f"[FSV {config[NASA_FSV]}]" if config.get(NASA_FSV) else ""
+
     cv._LOGGER.log(
-        cv.logging.INFO, 
-        "Auto configured NASA message {} as number component {}".format(config[NASA_MESSAGE], log_fsv)
+        cv.logging.INFO,
+        f"Auto-configured NASA message {config[NASA_MESSAGE]} "
+        f"as number component {log_fsv}"
     )
+
     return config
 
 nasa_schema = cv.All(
