@@ -126,7 +126,7 @@ CONFIG_SCHEMA = cv.All(
         {
             cv.GenerateID(): cv.declare_id(NASA_Number),
             cv.Optional(NASA_MESSAGE): cv.hex_int,
-            cv.Optional(NASA_FSV): cv.int_range(1011, 5094),      
+#            cv.Optional(NASA_FSV): cv.int_range(1011, 5094),      
             cv.Required(CONF_MAX_VALUE): cv.float_,
             cv.Required(CONF_MIN_VALUE): cv.float_,
             cv.Required(CONF_STEP): cv.positive_float,
