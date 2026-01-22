@@ -22,7 +22,10 @@ void NASA_Climate::setup() {
   }
   if (this->select_presets_ != nullptr) {
     this->select_presets_->add_on_state_callback(
-        [this](std::string state, size_t index) { this->on_preset_select(state, index); });
+        [this](size_t index) { 
+            auto state = this->select_presets_->traits.get_options()[index];
+            this->on_preset_select(state, index); 
+        });
   }
 }
 
@@ -82,10 +85,10 @@ void NASA_Climate::control(const climate::ClimateCall &call) {
     }
   }
   if (call.has_custom_preset()) {
-    auto updated = this->update_custom_preset(call.get_custom_preset());
+    auto updated = this->update_custom_preset(call.get_custom_preset().c_str());
     if (this->select_presets_ != nullptr && updated) {
       auto call = this->select_presets_->make_call();
-      call.set_option(this->get_custom_preset());
+      call.set_option(this->get_custom_preset().c_str());
       call.perform();
       this->preset.reset();
       update = true;
@@ -138,8 +141,12 @@ climate::ClimateTraits NASA_Climate::traits() {
   traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_HEAT});
   traits.set_supported_presets({});
   if (this->select_presets_ != nullptr) {
-    const auto &presets = this->select_presets_->traits.get_options();
-    traits.set_supported_custom_presets(std::vector(presets.begin(), presets.end()));
+    std::vector<const char *> preset_pointers;    
+    const auto &options = this->select_presets_->traits.get_options();    
+    for (const std::string &option : options) {
+      preset_pointers.push_back(option.c_str());
+    }    
+    traits.set_supported_custom_presets(preset_pointers);
   }
   return traits;
 }
