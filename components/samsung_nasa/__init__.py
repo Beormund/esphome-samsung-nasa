@@ -4,7 +4,11 @@ import esphome.config_validation as cv
 from esphome.components import uart
 from esphome import pins
 from esphome.cpp_helpers import gpio_pin_expression
-from .nasa.const import ADDRESS_CLASS_UNDEFINED
+from .nasa.const import (
+    ADDRESS_CLASS_UNDEFINED,
+    MODELS,
+    NASA_MODEL
+)
 from esphome.const import (
     CONF_ID, 
     CONF_FLOW_CONTROL_PIN
@@ -27,6 +31,7 @@ from .nasa.nasa import (
 MULTI_CONF = False
 CODEOWNERS = ["Beormund"]
 DEPENDENCIES = ["uart"]
+MODEL_REGISTRY = {}
 
 NASA_Controller = samsung_nasa_ns.class_("NASA_Controller", cg.PollingComponent)
 NASA_Request_Read_Action = samsung_nasa_ns.class_("NASA_Request_Read_Action")
@@ -87,7 +92,6 @@ client_schema = cv.Schema(
     }
 )
 
-
 CONFIG_SCHEMA = cv.Schema(
         {
             cv.GenerateID(NASA_CONTROLLER_ID): cv.declare_id(NASA_Controller),
@@ -95,10 +99,10 @@ CONFIG_SCHEMA = cv.Schema(
             cv.Optional(NASA_DEBUG_LOG_MESSAGES, default=False): cv.boolean,
             cv.Optional(NASA_DEBUG_LOG_MESSAGES_RAW, default=False): cv.boolean,
             cv.Optional(NASA_DEBUG_LOG_UNDEFINED_MESSAGES, default=False): cv.boolean,
-            cv.Required(NASA_DEVICES): cv.ensure_list(device_schema)
+            cv.Required(NASA_DEVICES): cv.ensure_list(device_schema),
+            cv.Optional(NASA_MODEL, default="STANDARD"): cv.one_of(*MODELS, upper=True)
         }
     ).extend(uart.UART_DEVICE_SCHEMA).extend(cv.polling_component_schema("30s"))
-
 
 nasa_item_base_schema = cv.Schema( 
     {
@@ -112,14 +116,10 @@ nasa_item_base_schema = cv.Schema(
 @automation.register_action(
     "samsung_nasa.request_read",
     NASA_Request_Read_Action,
-    cv.All(
-        cv.Schema(
-            {
-                cv.GenerateID(NASA_CONTROLLER_ID): cv.use_id(NASA_Controller),
-                cv.Required(CONF_ID): cv.ensure_list(cv.use_id(NASA_Base))
-            }
-        )
-    )
+    cv.Schema({
+        cv.GenerateID(NASA_CONTROLLER_ID): cv.use_id(NASA_Controller),
+        cv.Required(CONF_ID): cv.ensure_list(cv.use_id(NASA_Base))
+    })
 )
 async def request_read_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[NASA_CONTROLLER_ID])
@@ -144,7 +144,12 @@ async def to_code(config):
     if (min_retries := conf_client.get(NASA_MIN_RETRIES)) is not None:
         cg.add(client_var.set_min_retries(min_retries))
     if (send_timeout := conf_client.get(NASA_SEND_TIMEOUT)) is not None:
-        cg.add(client_var.set_send_timeout(send_timeout))    
+        cg.add(client_var.set_send_timeout(send_timeout))
+
+    # Store the model for other platforms to find
+    controller_id = str(config[NASA_CONTROLLER_ID])
+    MODEL_REGISTRY[controller_id] = config.get(NASA_MODEL, "STANDARD")
+    
     controller = cg.new_Pvariable(config[NASA_CONTROLLER_ID], client_var)
     cg.add(controller.set_debug_log_messages(config[NASA_DEBUG_LOG_MESSAGES]))
     cg.add(controller.set_debug_log_messages_raw(config[NASA_DEBUG_LOG_MESSAGES_RAW]))

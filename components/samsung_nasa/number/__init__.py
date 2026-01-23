@@ -11,11 +11,13 @@ from esphome.const import (
     CONF_STEP,
 )
 from .. import (
+    MODEL_REGISTRY,
     NASA_CONTROLLER_ID,
     NASA_DEVICE_ID,
     nasa_item_base_schema
 )
 from ..nasa.const import (
+    CONF_OVERRIDES,
     NASA_MESSAGE,
     NASA_LABEL,
     NASA_MODE,
@@ -49,9 +51,11 @@ def validate(config):
                 raise cv.Invalid("Component could not be found for FSV {}".format(fsvcode))
         else:
             config[NASA_MESSAGE] = cv.hex_int(number)
+            
     config[NASA_LABEL] = nasa_number[NASA_LABEL]
     config[NASA_MODE] = nasa_number[NASA_MODE]
     entries = nasa_number[CONF_DEFAULTS]() | nasa_number[CONF_DATA]()
+
     for key, value in entries.items():
         config[key] = value
     if (nasa_lambda_from := config.get(NASA_LAMBDA_FROM)) is not None:
@@ -99,6 +103,24 @@ CONFIG_SCHEMA = cv.All(
 )
 
 async def to_code(config):
+
+    controller_id_str = str(config[NASA_CONTROLLER_ID])
+    selected_model = MODEL_REGISTRY.get(controller_id_str, "STANDARD")
+
+    message_hex = config[NASA_MESSAGE]
+    nasa_number = numbers.get(message_hex)
+
+    # Start with the defaults from the YAML (which came from numbers.py)
+    min_val = config[CONF_MIN_VALUE]
+    max_val = config[CONF_MAX_VALUE]
+
+    # Apply overrides if they exist for this specific model
+    if nasa_number and CONF_OVERRIDES in nasa_number:
+        if selected_model in nasa_number[CONF_OVERRIDES]:
+            m_overrides = nasa_number[CONF_OVERRIDES][selected_model]
+            min_val = m_overrides.get(CONF_MIN_VALUE, min_val)
+            max_val = m_overrides.get(CONF_MAX_VALUE, max_val)
+
     lambda_expr_from = await cg.process_lambda(config[NASA_LAMBDA_FROM], [(float, 'x')], return_type=cg.float_)
     lambda_expr_to = await cg.process_lambda(config[NASA_LAMBDA_TO], [(float,'x')], return_type=cg.uint16)
     device = await cg.get_variable(config[NASA_DEVICE_ID])
@@ -109,13 +131,10 @@ async def to_code(config):
         config[NASA_MESSAGE],
         config[NASA_MODE],
         device,
-        min_value=config[CONF_MIN_VALUE],
-        max_value=config[CONF_MAX_VALUE],
+        min_value=min_val,
+        max_value=max_val,
         step=config[CONF_STEP]
     )
     cg.add(var_number.set_lambdas(lambda_expr_from, lambda_expr_to))
     cg.add(var_number.set_parent(controller))
     cg.add(controller.register_component(var_number))
-
-    
-
