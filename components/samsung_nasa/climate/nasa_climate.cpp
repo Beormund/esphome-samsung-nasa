@@ -141,11 +141,8 @@ climate::ClimateTraits NASA_Climate::traits() {
   traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_HEAT});
   traits.set_supported_presets({});
   if (this->select_presets_ != nullptr) {
-    std::vector<const char *> preset_pointers;    
-    const auto &options = this->select_presets_->traits.get_options();    
-    for (const std::string &option : options) {
-      preset_pointers.push_back(option.c_str());
-    }    
+    const auto &options = this->select_presets_->traits.get_options();
+    std::vector<const char*> preset_pointers(options.begin(), options.end());
     traits.set_supported_custom_presets(preset_pointers);
   }
   return traits;
