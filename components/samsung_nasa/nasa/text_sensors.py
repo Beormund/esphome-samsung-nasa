@@ -64,6 +64,7 @@ text_sensors = {
     0x8000: {
         NASA_LABEL: "ENUM_OUT_OPERATION_SERVICE_OP",
         NASA_MODE: CONTROLLER_MODE_CONTROL,
+        CONF_NAME: "Service Operation",
         NASA_MAPPING: {
             2: "Heating Test Run",
             3: "Pump Out",
