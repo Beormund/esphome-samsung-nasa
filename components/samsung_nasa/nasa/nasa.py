@@ -2,6 +2,7 @@ import esphome.codegen as cg
 import esphome.components.number as number
 import esphome.components.select as select
 import esphome.components.sensor as sensor
+import esphome.components.text_sensor as text_sensor
 import esphome.components.binary_sensor as binary_sensor
 import esphome.components.switch as switch
 import esphome.components.climate as climate
@@ -17,6 +18,7 @@ NASA_Base   = samsung_nasa_ns.class_("NASA_Base")
 NASA_Number = samsung_nasa_ns.class_("NASA_Number", number.Number, NASA_Base)
 NASA_Select = samsung_nasa_ns.class_("NASA_Select", select.Select, NASA_Base)
 NASA_Sensor = samsung_nasa_ns.class_("NASA_Sensor", sensor.Sensor, NASA_Base)
+NASA_TextSensor = samsung_nasa_ns.class_("NASA_TextSensor", text_sensor.TextSensor, NASA_Base)
 NASA_BinarySensor = samsung_nasa_ns.class_("NASA_BinarySensor", binary_sensor.BinarySensor, NASA_Base)
 NASA_Switch = samsung_nasa_ns.class_("NASA_Switch", switch.Switch, NASA_Base)
 NASA_Climate = samsung_nasa_ns.class_("NASA_Climate", climate.Climate, cg.Component)
@@ -100,6 +102,7 @@ def available_as(message:int):
     from .numbers import numbers
     from .selects import selects
     from .sensors import sensors
+    from .text_sensors import text_sensors
     from .binary_sensors import binary_sensors
     from .switches import switches
     result = set()
@@ -109,13 +112,10 @@ def available_as(message:int):
         result.add("select")
     if sensors.get(message) is not None:
         result.add("sensor")
+    if text_sensors.get(message) is not None:
+        result.add("text_sensor")    
     if binary_sensors.get(message) is not None:
         result.add("binary_sensor")
     if switches.get(message) is not None:
         result.add("switch")
     return result
-
-
-
-
-

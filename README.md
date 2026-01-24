@@ -253,6 +253,31 @@ Refer to p.24 onwards of the [MIM-E03EN user manual PDF](MIM-E03EN.pdf).
 
 3031, 3041, 3051, 4023, 4031, 4032, 4061, 5022, 5041, 5051, 5081, 5091, 5094  
 
+## Text Sensor
+
+Text sensor components are read-only. They monitor internal system states and translate raw NASA protocol values into human-readable text. These are useful for Home Assistant dashboards. If no name field is provided the component will automatically provide a meaningful name
+
+```yaml
+text_sensor:
+  - platform: samsung_nasa
+    message: 0x8001 # Outdoor unit status
+    nasa_device_id: nasa_device_2
+```
+
+ A list of available text sensors can be found in [text_sensors.py](/components/samsung_nasa/nasa/text_sensors.py) which is used to auto configure the text sensor components.
+
+
+### Supported Text Sensors
+
+| NASA Code | NASA Label                    | Description                                    |
+|-----------|-------------------------------|------------------------------------------------|
+| 0x4002    | ENUM_IN_OPERATION_MODE_REAL   | Real-time active mode (e.g., Heat, Cool)       |
+| 0x4066    | ENUM_IN_WATER_HEATER_MODE     | DHW mode (Economic, Standard, Power, Force)    |
+| 0x4067    | ENUM_IN_3WAY_VALVE            | Water flow diversion (Heating vs DHW Tank)     |
+| 0x8000    | ENUM_OUT_OPERATION_SERVICE_OP | Indoor unit defrost operation steps            |
+| 0x8001    | ENUM_OUT_OPERATION_ODU_MODE   | Outdoor unit status (Normal, Deice, Vacuum etc)|
+| 0x8061    | ENUM_OUT_DEICE_STEP_INDOOR    | Defrost cycle progress (Stage 1, 2, 3 etc)     |
+| 0x8235    | VAR_OUT_ERROR_CODE            | Full system diagnostics and error descriptions |
 
 ## Sensor   
 

@@ -1,5 +1,4 @@
 #include "nasa_sensor.h"
-#include "esphome/core/log.h"
 
 namespace esphome {
 namespace samsung_nasa {
