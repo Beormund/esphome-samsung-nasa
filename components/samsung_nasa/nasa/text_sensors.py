@@ -61,6 +61,17 @@ text_sensors = {
         },
         CONF_DEFAULTS: text_defaults("mdi:water-boiler")
     },
+    0x8000: {
+        NASA_LABEL: "ENUM_OUT_OPERATION_SERVICE_OP",
+        NASA_MODE: CONTROLLER_MODE_CONTROL,
+        NASA_MAPPING: {
+            2: "Heating Test Run",
+            3: "Pump Out",
+            13: "Cooling Test Run",
+            14: "Pump Down"
+        },
+        CONF_DEFAULTS: text_defaults("mdi:engine")
+    },
     0x8001: {
         NASA_LABEL: "ENUM_OUT_OPERATION_ODU_MODE",
         NASA_MODE: CONTROLLER_MODE_STATUS,

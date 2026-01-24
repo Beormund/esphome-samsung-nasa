@@ -274,6 +274,7 @@ text_sensor:
 | 0x4002    | ENUM_IN_OPERATION_MODE_REAL   | Real-time active mode (e.g., Heat, Cool)       |
 | 0x4066    | ENUM_IN_WATER_HEATER_MODE     | DHW mode (Economic, Standard, Power, Force)    |
 | 0x4067    | ENUM_IN_3WAY_VALVE            | Water flow diversion (Heating vs DHW Tank)     |
+| 0x8000    | ENUM_OUT_OPERATION_SERVICE_OP | Indoor unit defrost operation steps            |
 | 0x8001    | ENUM_OUT_OPERATION_ODU_MODE   | Outdoor unit status (Normal, Deice, Vacuum etc)|
 | 0x8061    | ENUM_OUT_DEICE_STEP_INDOOR    | Defrost cycle progress (Stage 1, 2, 3 etc)     |
 | 0x8235    | VAR_OUT_ERROR_CODE            | Full system diagnostics and error descriptions |
