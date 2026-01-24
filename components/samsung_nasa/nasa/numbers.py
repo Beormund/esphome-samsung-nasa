@@ -99,7 +99,12 @@ numbers = {
         NASA_LABEL: "VAR_IN_TEMP_WATER_HEATER_TARGET_F",
         NASA_MODE: CONTROLLER_MODE_CONTROL,
         CONF_DATA: cmd_numeric_data(30, 70, 0.5),
-        CONF_DEFAULTS: temperature_defaults()
+        CONF_DEFAULTS: temperature_defaults(),
+        CONF_OVERRIDES: {
+            "EHS_MONO": {
+                CONF_MIN_VALUE: 30, 
+                CONF_MAX_VALUE: 65},
+        }        
     },
     0x4247: {
         NASA_LABEL: "VAR_IN_TEMP_WATER_OUTLET_TARGET_F",
