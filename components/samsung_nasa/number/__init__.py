@@ -110,16 +110,24 @@ async def to_code(config):
     message_hex = config[NASA_MESSAGE]
     nasa_number = numbers.get(message_hex)
 
-    # Start with the defaults from the YAML (which came from numbers.py)
-    min_val = config[CONF_MIN_VALUE]
-    max_val = config[CONF_MAX_VALUE]
-
     # Apply overrides if they exist for this specific model
     if nasa_number and CONF_OVERRIDES in nasa_number:
         if selected_model in nasa_number[CONF_OVERRIDES]:
             m_overrides = nasa_number[CONF_OVERRIDES][selected_model]
-            min_val = m_overrides.get(CONF_MIN_VALUE, min_val)
-            max_val = m_overrides.get(CONF_MAX_VALUE, max_val)
+
+            # This loop dynamically replaces ANY key found in the override
+            for key, value in m_overrides.items():
+                config[key] = value
+                cv._LOGGER.log(
+                    cv.logging.INFO,
+                    "NASA Override: [{} - {}] Setting {} to {}".format(selected_model, message_hex, key, value)
+                )
+
+    # Resolve variables from the now-updated config
+    # Since we includes overrides above, it's pulled correctly here
+    min_val = config[CONF_MIN_VALUE]
+    max_val = config[CONF_MAX_VALUE]
+    step_val = config[CONF_STEP]
 
     lambda_expr_from = await cg.process_lambda(config[NASA_LAMBDA_FROM], [(float, 'x')], return_type=cg.float_)
     lambda_expr_to = await cg.process_lambda(config[NASA_LAMBDA_TO], [(float,'x')], return_type=cg.uint16)
@@ -133,8 +141,9 @@ async def to_code(config):
         device,
         min_value=min_val,
         max_value=max_val,
-        step=config[CONF_STEP]
+        step=step_val
     )
     cg.add(var_number.set_lambdas(lambda_expr_from, lambda_expr_to))
     cg.add(var_number.set_parent(controller))
     cg.add(controller.register_component(var_number))
+
