@@ -13,7 +13,7 @@ def text_defaults(
         icon="mdi:text", 
         category=ENTITY_CATEGORY_NONE
     ):
-    return {
+    return lambda: {
         CONF_ICON: icon,
         CONF_ENTITY_CATEGORY: category,
     }
