@@ -28,14 +28,20 @@ def fsv_switch_data(code):
 def empty_data(): return lambda: {}
 
 switches = {
-    0x4065: {
-        NASA_LABEL: "ENUM_IN_WATER_HEATER_POWER",
+    0x4000: {
+        NASA_LABEL: "ENUM_IN_OPERATION_POWER",
         NASA_MODE: CONTROLLER_MODE_CONTROL,
         CONF_DATA: empty_data(),
         CONF_DEFAULTS: bool_defaults()
-    },    
-    0x4000: {
-        NASA_LABEL: "ENUM_IN_OPERATION_POWER",
+    },
+    0x4046: {
+        NASA_LABEL: "ENUM_IN_SILENCE",
+        NASA_MODE: CONTROLLER_MODE_CONTROL,
+        CONF_DATA: empty_data(),
+        CONF_DEFAULTS: bool_defaults()
+    },
+    0x4065: {
+        NASA_LABEL: "ENUM_IN_WATER_HEATER_POWER",
         NASA_MODE: CONTROLLER_MODE_CONTROL,
         CONF_DATA: empty_data(),
         CONF_DEFAULTS: bool_defaults()

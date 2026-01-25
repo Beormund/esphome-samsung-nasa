@@ -7,7 +7,6 @@
 #include "esphome/components/number/number.h"
 #include "esphome/components/switch/switch.h"
 #include <map>
-#include <set>
 
 namespace esphome {
 namespace samsung_nasa {
@@ -34,12 +33,11 @@ class NASA_Climate : public climate::Climate, public Component {
   void set_current_temp(sensor::Sensor *current_temp) { this->current_temp_ = current_temp; }
   void set_action_sensor(sensor::Sensor *action_sens) { this->action_sens_ = action_sens; }
   void set_action_map(ClimateActionMap *mappings) { this->mappings_ = mappings; }
-  void set_custom_preset_select(select::Select *custom_presets) { this->custom_presets_ = custom_presets; }
+  void set_custom_preset_select(select::Select *custom_presets) { this->select_presets_ = custom_presets; }
   bool update_action(climate::ClimateAction new_action);
 
  protected:
   void control(const climate::ClimateCall &call) override;
-  std::set<std::string> get_custom_presets();
   void on_power(bool state);
   void on_target_temp(float state);
   void on_current_temp(float state);
@@ -48,14 +46,14 @@ class NASA_Climate : public climate::Climate, public Component {
   bool update_mode(climate::ClimateMode new_mode);
   bool update_current_temp(float new_temp);
   bool update_target_temp(float new_temp);
-  bool update_custom_preset(std::string new_value);
+  bool update_custom_preset(const char* new_value);
   climate::ClimateTraits traits() override;
 
   switch_::Switch *power_{nullptr};
   number::Number *target_temp_{nullptr};
   sensor::Sensor *current_temp_{nullptr};
   sensor::Sensor *action_sens_{nullptr};
-  select::Select *custom_presets_{nullptr};
+  select::Select *select_presets_{nullptr};
   ClimateActionMap *mappings_{nullptr};
 };
 

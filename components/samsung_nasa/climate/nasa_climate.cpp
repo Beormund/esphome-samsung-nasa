@@ -2,6 +2,7 @@
 #include "../nasa.h"
 #include "esphome/components/climate/climate.h"
 #include "esphome/core/log.h"
+#include <vector>
 
 namespace esphome {
 namespace samsung_nasa {
@@ -19,9 +20,12 @@ void NASA_Climate::setup() {
   if (this->action_sens_ != nullptr && this->mappings_ != nullptr) {
     this->action_sens_->add_on_state_callback([this](float state) { this->on_action_sens(state); });
   }
-  if (this->custom_presets_ != nullptr) {
-    this->custom_presets_->add_on_state_callback(
-        [this](std::string state, size_t index) { this->on_preset_select(state, index); });
+  if (this->select_presets_ != nullptr) {
+    this->select_presets_->add_on_state_callback(
+        [this](size_t index) { 
+            auto state = this->select_presets_->traits.get_options()[index];
+            this->on_preset_select(state, index); 
+        });
   }
 }
 
@@ -42,7 +46,7 @@ void NASA_Climate::on_current_temp(float state) {
 }
 
 void NASA_Climate::on_preset_select(std::string state, size_t index) {
-  if (this->update_custom_preset(state))
+  if (this->update_custom_preset(state.c_str()))
     this->publish_state();
 }
 
@@ -80,11 +84,11 @@ void NASA_Climate::control(const climate::ClimateCall &call) {
       update = true;
     }
   }
-  if (call.get_custom_preset().has_value()) {
-    auto updated = this->update_custom_preset(*call.get_custom_preset());
-    if (this->custom_presets_ != nullptr && updated) {
-      auto call = this->custom_presets_->make_call();
-      call.set_option(this->custom_preset.value());
+  if (call.has_custom_preset()) {
+    auto updated = this->update_custom_preset(call.get_custom_preset().c_str());
+    if (this->select_presets_ != nullptr && updated) {
+      auto call = this->select_presets_->make_call();
+      call.set_option(this->get_custom_preset().c_str());
       call.perform();
       this->preset.reset();
       update = true;
@@ -126,32 +130,21 @@ bool NASA_Climate::update_target_temp(float new_temp) {
   return false;
 }
 
-bool NASA_Climate::update_custom_preset(std::string new_value) {
-  if (this->custom_preset.value_or("") != new_value) {
-    this->custom_preset = new_value;
-    return true;
-  }
-  return false;
-}
-
-std::set<std::string> NASA_Climate::get_custom_presets() {
-  std::set<std::string> presets;
-  if (this->custom_presets_ != nullptr) {
-    for (size_t i = 0; i < this->custom_presets_->size(); ++i) {
-      auto item = this->custom_presets_->at(i).value();
-      presets.insert(item);
-    }
-  }
-  return presets;
+bool NASA_Climate::update_custom_preset(const char *new_value) {
+    return this->set_custom_preset_(new_value);
 }
 
 climate::ClimateTraits NASA_Climate::traits() {
   climate::ClimateTraits traits{};
-  traits.set_supports_current_temperature(true);
-  traits.set_supports_action(true);
+  traits.add_feature_flags(climate::CLIMATE_SUPPORTS_CURRENT_TEMPERATURE);
+  traits.add_feature_flags(climate::CLIMATE_SUPPORTS_ACTION);
   traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_HEAT});
   traits.set_supported_presets({});
-  traits.set_supported_custom_presets(this->get_custom_presets());
+  if (this->select_presets_ != nullptr) {
+    const auto &options = this->select_presets_->traits.get_options();
+    std::vector<const char*> preset_pointers(options.begin(), options.end());
+    traits.set_supported_custom_presets(preset_pointers);
+  }
   return traits;
 }
 

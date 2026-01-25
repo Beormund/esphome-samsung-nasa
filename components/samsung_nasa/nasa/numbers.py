@@ -86,7 +86,7 @@ numbers = {
     0x4201: {
         NASA_LABEL: "VAR_IN_TEMP_TARGET_F",
         NASA_MODE: CONTROLLER_MODE_CONTROL,
-        CONF_DATA: cmd_numeric_data(16, 30),
+        CONF_DATA: cmd_numeric_data(16, 30, 0.5),
         CONF_DEFAULTS: temperature_defaults()
     },
     0x4248: {
@@ -98,19 +98,37 @@ numbers = {
     0x42D6: {
         NASA_LABEL: "VAR_IN_TEMP_TARGET_ZONE2_F",
         NASA_MODE: CONTROLLER_MODE_CONTROL,
-        CONF_DATA: cmd_numeric_data(16, 30),
+        CONF_DATA: cmd_numeric_data(16, 30, 0.5),
         CONF_DEFAULTS: temperature_defaults()
     },        
     0x4235: {
         NASA_LABEL: "VAR_IN_TEMP_WATER_HEATER_TARGET_F",
         NASA_MODE: CONTROLLER_MODE_CONTROL,
-        CONF_DATA: cmd_numeric_data(30, 65),
-        CONF_DEFAULTS: temperature_defaults()
+        CONF_DATA: cmd_numeric_data(30, 70, 0.5),
+        CONF_DEFAULTS: temperature_defaults(),
+        CONF_OVERRIDES: {
+            "EHS_MONO": {
+                CONF_MIN_VALUE: 30, 
+                CONF_MAX_VALUE: 65},
+        }        
     },
     0x4247: {
         NASA_LABEL: "VAR_IN_TEMP_WATER_OUTLET_TARGET_F",
         NASA_MODE: CONTROLLER_MODE_CONTROL,
-        CONF_DATA: cmd_numeric_data(15, 55),
+        CONF_DATA: cmd_numeric_data(5, 65, 0.5),
+        CONF_DEFAULTS: temperature_defaults()
+    },
+    0x42D7: {
+        NASA_LABEL: "VAR_IN_TEMP_WATER_OUTLET_TARGET_ZONE2_F",
+        NASA_MODE: CONTROLLER_MODE_CONTROL,
+        CONF_DATA: cmd_numeric_data(5, 65, 0.5),
+        CONF_DEFAULTS: temperature_defaults()
+    },    
+    0x4248: {
+        NASA_LABEL: "VAR_IN_TEMP_WATER_LAW_TARGET_F",
+        NASA_MODE: CONTROLLER_MODE_CONTROL,
+        CONF_DATA: cmd_numeric_data(-5, +5, 0.5),
+        CONF_ENTITY_CATEGORY: ENTITY_CATEGORY_CONFIG,
         CONF_DEFAULTS: temperature_defaults()
     },
     0x424A: {
