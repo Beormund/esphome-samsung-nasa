@@ -41,6 +41,8 @@ CLIMATE_ACTION_SENSOR = "action_mode_sensor"
 CLIMATE_CUSTOM_PRESET_SELECT_ID = "custom_preset_select_id"
 CLIMATE_ACTION_MAPPINGS_ID = "mappings_id"
 CLIMATE_ACTION_MAPPINGS = "mappings"
+CLIMATE_MODE_SELECT_ID = "mode_select_id"
+CLIMATE_SUPPORTED_MODES = "supported_modes"
 ICON_THERMOSTAT = "mdi:thermostat"
 
 def to_pair_schema(config):
@@ -74,10 +76,12 @@ CONFIG_SCHEMA = cv.Schema(
         {  
             cv.Optional(CONF_ICON, default=ICON_THERMOSTAT): cv.icon,
             cv.Optional(CLIMATE_POWER_SWITCH_ID): cv.use_id(switch.Switch),
+            cv.Optional(CLIMATE_MODE_SELECT_ID): cv.use_id(select.Select),
             cv.Optional(CLIMATE_CURRENT_TEMP_ID): cv.use_id(sensor.Sensor),
             cv.Optional(CLIMATE_TARGET_TEMP_ID): cv.use_id(number.Number),
             cv.Optional(CLIMATE_ACTION_SENSOR): CLIMATE_ACTION_MAPPING_SCHEMA,
-            cv.Optional(CLIMATE_CUSTOM_PRESET_SELECT_ID): cv.use_id(select.Select)
+            cv.Optional(CLIMATE_CUSTOM_PRESET_SELECT_ID): cv.use_id(select.Select),
+            cv.Optional(CLIMATE_SUPPORTED_MODES): cv.ensure_list(climate.validate_climate_mode),
         }
     )
 )
@@ -106,6 +110,11 @@ async def to_code(config):
     if CLIMATE_POWER_SWITCH_ID in config:
         power = await cg.get_variable(config[CLIMATE_POWER_SWITCH_ID])
         cg.add(var.set_power_switch(power))
+    if CLIMATE_MODE_SELECT_ID in config:
+        mode_sel = await cg.get_variable(config[CLIMATE_MODE_SELECT_ID])
+        cg.add(var.set_mode_select(mode_sel))
+    if CLIMATE_SUPPORTED_MODES in config:
+        cg.add(var.set_supported_modes(config[CLIMATE_SUPPORTED_MODES]))
     if CLIMATE_CURRENT_TEMP_ID in config:
         current = await cg.get_variable(config[CLIMATE_CURRENT_TEMP_ID])
         cg.add(var.set_current_temp(current))
@@ -125,7 +134,3 @@ async def to_code(config):
                     for key, value in cam.items():                       
                         cg.add(var_map.add_map_entry(key, value))
                     cg.add(var.set_action_map(var_map))
-
-
-    
-

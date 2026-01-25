@@ -7,6 +7,7 @@
 #include "esphome/components/number/number.h"
 #include "esphome/components/switch/switch.h"
 #include <map>
+#include <set>
 
 namespace esphome {
 namespace samsung_nasa {
@@ -34,6 +35,10 @@ class NASA_Climate : public climate::Climate, public Component {
   void set_action_sensor(sensor::Sensor *action_sens) { this->action_sens_ = action_sens; }
   void set_action_map(ClimateActionMap *mappings) { this->mappings_ = mappings; }
   void set_custom_preset_select(select::Select *custom_presets) { this->select_presets_ = custom_presets; }
+  void set_mode_select(select::Select *mode_select) { this->mode_select_ = mode_select; }
+  void set_supported_modes(std::vector<climate::ClimateMode> modes) { 
+    this->supported_modes_ = {modes.begin(), modes.end()}; 
+  }
   bool update_action(climate::ClimateAction new_action);
 
  protected:
@@ -43,6 +48,7 @@ class NASA_Climate : public climate::Climate, public Component {
   void on_current_temp(float state);
   void on_action_sens(float state);
   void on_preset_select(std::string state, size_t index);
+  void on_mode_select(climate::ClimateMode mode);
   bool update_mode(climate::ClimateMode new_mode);
   bool update_current_temp(float new_temp);
   bool update_target_temp(float new_temp);
@@ -54,7 +60,10 @@ class NASA_Climate : public climate::Climate, public Component {
   sensor::Sensor *current_temp_{nullptr};
   sensor::Sensor *action_sens_{nullptr};
   select::Select *select_presets_{nullptr};
+  select::Select *mode_select_{nullptr};
+  std::set<climate::ClimateMode> supported_modes_{};
   ClimateActionMap *mappings_{nullptr};
+  climate::ClimateMode last_active_mode_{climate::CLIMATE_MODE_HEAT};
 };
 
 }  // namespace samsung_nasa

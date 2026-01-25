@@ -547,6 +547,47 @@ select:
     name: Hot Water Mode
     id: hotwater_mode
 ```
+
+## Advanced Climate Component: Climate Modes
+
+In most cases the default behaviour of the samsung_nasa framework climate component suffices, i.e, simply turn the heating zone or hot water on (heat) or off. However, advanced users also have the ability to specify climate modes. This is done by specifying two additional fields. Firstly, you can explicitly link the climate component to the 0x4001 select component (operation/climate mode). The options available with 0x4001 are: "Heat", "Cool", "Auto", "Dry" and "Fan". Secondly, not all of these modes may be required so you can use the supported_modes field to show only the modes your specific indoor unit or zone uses (i.e., hiding the "Cool" mode).
+
+```yaml
+climate:
+  - platform: samsung_nasa
+    name: "Zone 1"
+    # The power switch (Register 0x4000)
+    power_switch_id: nasa_power_switch     
+    # NEW: The mode select (Register 0x4001)
+    # Linking this allows ESPHome to force the mode when turning on
+    mode_select_id: nasa_mode_select    
+    # NEW: UI Filtering
+    # Only these options will appear in Home Assistant
+    supported_modes:                   
+      - HEAT
+      - COOL
+```
+Available options for supported_modes:
+
+| YAML Value  | ESPHome Enum Constant    | NASA Register (0x4001) Mapping      |
+| :---        | :---                     | :---                                |
+| `OFF`       | `CLIMATE_MODE_OFF`       | Handled via Power Register (0x4000) |
+| `HEAT`      | `CLIMATE_MODE_HEAT`      | Maps to the string `"Heat"`         |
+| `COOL`      | `CLIMATE_MODE_COOL`      | Maps to the string `"Cool"`         |
+| `HEAT_COOL` | `CLIMATE_MODE_HEAT_COOL` | Maps to the string `"Auto"`         |
+| `DRY`       | `CLIMATE_MODE_DRY`       | Maps to the string `"Dry"`          |
+| `FAN_ONLY`  | `CLIMATE_MODE_FAN_ONLY`  | Maps to the string `"Fan"`          |
+
+### Logic Flow
+
+In this scenario the climate component now manages the relationship between the Power Switch and the Mode Select register to ensure they never get out of sync.
+
+1. Commanding: When you select "Cool" in Home Assistant, the component first ensures the NASA Power register is ON, then sends the "Cool" command to the NASA Mode register.
+
+2. Memory: If the unit is turned off via the NASA framework, the ESPHome component "bookmarks" the current mode.
+
+3. Restore: On a "Power On" command, it re-issues the bookmarked mode to the 0x4001 register, ensuring the unit doesn't default to an unwanted state (like Fan Only).
+
 ## What if My System Uses 3rd Party Thermostats?
 
 Whilst you won't be able to use the samsung_nasa platform climate control you can still turn the heating zone on/off and report whether or not 3rd party thermostats are calling for heat. Note that when your heat pump is configured to use 3rd party thermostats to control heating zone valves (rather than the Samsung wired controller acting as thermostat with zone control enabled) the MIM control board will not use pins B9/B10, B13/B14 (switched live output for zone valve control). Instead try something like this:
