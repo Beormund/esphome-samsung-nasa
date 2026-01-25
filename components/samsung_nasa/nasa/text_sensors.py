@@ -66,6 +66,7 @@ text_sensors = {
         NASA_MODE: CONTROLLER_MODE_CONTROL,
         CONF_NAME: "Service Operation",
         NASA_MAPPING: {
+            0: "Not Active",
             2: "Heating Test Run",
             3: "Pump Out",
             13: "Cooling Test Run",
@@ -123,6 +124,7 @@ text_sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_NAME: "Defrost Stage",
         NASA_MAPPING: {
+            0: "No Defrost",
             1: "Stage 1", 
             2: "Stage 2", 
             3: "Stage 3", 
