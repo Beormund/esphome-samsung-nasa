@@ -131,7 +131,7 @@ text_sensors = {
             7: "Finished", 
             255: "No Defrost"
         },
-        CONF_DEFAULTS: text_defaults("mdi:ice-pop")
+        CONF_DEFAULTS: text_defaults("mdi:snowflake-melt")
     },
     0x8235: {
         NASA_LABEL: "VAR_OUT_ERROR_CODE",
@@ -239,6 +239,6 @@ text_sensors = {
             488: "AC Input Voltage Sensor Error",
             590: "Inverter: Data Flash Error",
         },
-        CONF_DEFAULTS: text_defaults("mdi:alert-octagon", ENTITY_CATEGORY_DIAGNOSTIC)
+        CONF_DEFAULTS: text_defaults("mdi:alert", ENTITY_CATEGORY_DIAGNOSTIC)
     }
 }

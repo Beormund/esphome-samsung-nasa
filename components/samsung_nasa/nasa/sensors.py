@@ -368,7 +368,10 @@ sensors = {
             accuracy_decimals=0,
             icon=ICON_ALERT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
-            filters=[{CONF_DELTA: 1}]
+            filters=[
+                {CONF_DELTA: 1.0},
+                {CONF_LAMBDA: Lambda("return (int)x;")} 
+            ]
         )
     },
     0x8236: {
