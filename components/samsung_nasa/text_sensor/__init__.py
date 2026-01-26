@@ -78,15 +78,14 @@ async def to_code(config):
     device = await cg.get_variable(config[NASA_DEVICE_ID])
     controller = await cg.get_variable(config[NASA_CONTROLLER_ID])
     
-    # Initialize the C++ class with constructor: Label, Message, Mode, Device
-    var = cg.new_Pvariable(
-        config[CONF_ID],
+    # Use the official text_sensor helper instead of manual Pvariable
+    var = await text_sensor.new_text_sensor(
+        config,
         config[NASA_LABEL],
         config[NASA_MESSAGE],
         config[NASA_MODE],
         device
     )
-    await text_sensor.register_text_sensor(var, config)
 
     # Inject the lookup logic (the switch statement)
     spec = text_sensors.get(config[NASA_MESSAGE])
