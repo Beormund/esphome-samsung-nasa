@@ -4,12 +4,14 @@ namespace esphome {
 namespace samsung_nasa {
 
 void NASA_TextSensor::on_receive(long value) {
-  if (this->lookup_func_) {
-    std::string translated_value = this->lookup_func_(value);
-    this->publish_state(translated_value);
-  } else {
-    // Fallback if no mapping was provided
-    this->publish_state(std::to_string(value));
+  // Only process and publish if the numeric value has changed
+  if (value != this->last_numeric_value_) {
+    if (this->lookup_func_) {
+      this->publish_state(this->lookup_func_(value));
+    } else {
+      this->publish_state(std::to_string(value));
+    }
+    this->last_numeric_value_ = value;
   }
 }
 

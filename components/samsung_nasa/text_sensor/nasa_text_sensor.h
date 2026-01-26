@@ -23,6 +23,7 @@ class NASA_TextSensor : public text_sensor::TextSensor, public NASA_Base {
  protected:
   NASA_Controller *controller_{nullptr};
   std::function<std::string(long)> lookup_func_;
+  long last_numeric_value_ = -1; // Sentinel value
 };
 
 }  // namespace samsung_nasa
