@@ -15,12 +15,13 @@ ControllerMode = samsung_nasa_ns.enum("ControllerMode", is_class=True)
 AddressClass = samsung_nasa_ns.enum("AddressClass", is_class=True)
 
 NASA_Base   = samsung_nasa_ns.class_("NASA_Base")
-NASA_Number = samsung_nasa_ns.class_("NASA_Number", number.Number, NASA_Base)
-NASA_Select = samsung_nasa_ns.class_("NASA_Select", select.Select, NASA_Base)
+NASA_Write  = samsung_nasa_ns.class_("NASA_Write", NASA_Base)
+NASA_Number = samsung_nasa_ns.class_("NASA_Number", number.Number, NASA_Write, NASA_Base)
+NASA_Select = samsung_nasa_ns.class_("NASA_Select", select.Select, NASA_Write, NASA_Base)
 NASA_Sensor = samsung_nasa_ns.class_("NASA_Sensor", sensor.Sensor, NASA_Base)
 NASA_TextSensor = samsung_nasa_ns.class_("NASA_TextSensor", text_sensor.TextSensor, NASA_Base)
 NASA_BinarySensor = samsung_nasa_ns.class_("NASA_BinarySensor", binary_sensor.BinarySensor, NASA_Base)
-NASA_Switch = samsung_nasa_ns.class_("NASA_Switch", switch.Switch, NASA_Base)
+NASA_Switch = samsung_nasa_ns.class_("NASA_Switch", switch.Switch, NASA_Write, NASA_Base)
 NASA_Climate = samsung_nasa_ns.class_("NASA_Climate", climate.Climate, cg.Component)
 
 

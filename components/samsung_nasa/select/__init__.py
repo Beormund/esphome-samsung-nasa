@@ -17,7 +17,8 @@ from ..nasa.const import (
     NASA_LAMBDA_FROM,
     NASA_LAMBDA_TO,
     NASA_MESSAGE,
-    NASA_MODE
+    NASA_MODE,
+    NASA_TYPE
 )
 from .. import (
     nasa_item_base_schema,
@@ -50,6 +51,7 @@ def validate(config):
             config[NASA_MESSAGE] = cv.hex_int(number)
     config[NASA_LABEL] = nasa_select[NASA_LABEL]
     config[NASA_MODE] = nasa_select[NASA_MODE]
+    config[NASA_TYPE] = "select"
     entries = nasa_select[CONF_DEFAULTS]() | nasa_select[CONF_DATA]()
     for key, value in entries.items():
         config[key] = value
@@ -87,6 +89,7 @@ CONFIG_SCHEMA = cv.All(
             cv.GenerateID(): cv.declare_id(NASA_Select),
             cv.Optional(NASA_MESSAGE): cv.hex_int,
             cv.Optional(NASA_FSV): cv.int_range(1011, 5094),
+            cv.Required(NASA_TYPE): cv.string_strict, 
             cv.Required(NASA_LAMBDA_FROM): cv.returning_lambda,
             cv.Required(NASA_LAMBDA_TO): cv.returning_lambda,
             cv.Required(CONF_OPTIONS): cv.ensure_list(str)

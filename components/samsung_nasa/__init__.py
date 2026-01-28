@@ -1,6 +1,7 @@
 from esphome import automation
 import esphome.codegen as cg
 import esphome.config_validation as cv
+from esphome.core import CORE
 from esphome.components import uart
 from esphome import pins
 from esphome.cpp_helpers import gpio_pin_expression
@@ -16,7 +17,8 @@ from esphome.const import (
 import re
 from .nasa.const import (
     NASA_LABEL,
-    NASA_MODE
+    NASA_MODE,
+    NASA_TYPE
 )
 from .nasa.nasa import (
     samsung_nasa_ns, 
@@ -24,7 +26,8 @@ from .nasa.nasa import (
     address_class,
     CONTROLLER_MODE_STATUS, 
     ADDRESS_CLASS_LABELS,
-    NASA_Base
+    NASA_Base,
+    NASA_Write
 )
 
 
@@ -35,6 +38,7 @@ MODEL_REGISTRY = {}
 
 NASA_Controller = samsung_nasa_ns.class_("NASA_Controller", cg.PollingComponent)
 NASA_Request_Read_Action = samsung_nasa_ns.class_("NASA_Request_Read_Action")
+NASA_Request_Write_Action = samsung_nasa_ns.class_("NASA_Request_Write_Action")
 NASA_Client = samsung_nasa_ns.class_("NASA_Client", cg.PollingComponent, uart.UARTDevice)
 NASA_Device = samsung_nasa_ns.class_("NASA_Device")
 NASA_CONTROLLER_ID = "nasa_controller_id"
@@ -129,6 +133,49 @@ async def request_read_to_code(config, action_id, template_arg, args):
         comps.append(comp)
     var = cg.new_Pvariable(action_id, template_arg, parent)
     cg.add(var.request_read(comps))
+    return var
+
+@automation.register_action(
+    "samsung_nasa.request_write",
+    NASA_Request_Write_Action,
+    cv.Schema({
+        cv.GenerateID(NASA_CONTROLLER_ID): cv.use_id(NASA_Controller),
+        cv.Required("writes"): cv.ensure_list(
+            cv.Schema({
+                cv.Required(CONF_ID): cv.use_id(NASA_Write),
+                cv.Required("value"): cv.templatable(cv.Any(cv.float_, cv.boolean, cv.string_strict)),
+            })
+        ),
+    })
+)
+async def request_write_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[NASA_CONTROLLER_ID])
+    var = cg.new_Pvariable(action_id, template_arg, parent)
+    
+    for write_conf in config["writes"]:
+        id_obj = write_conf[CONF_ID]
+        
+        actual_comp_config = None
+        for domain in ["select", "number", "switch"]:
+            if domain in CORE.config:
+                for item in CORE.config[domain]:
+                    if item.get(CONF_ID) == id_obj:
+                        actual_comp_config = item
+                        break
+        
+        nasa_type = actual_comp_config.get(NASA_TYPE) if actual_comp_config else "number"
+        
+        if nasa_type == "select":
+            res_type = cg.std_string
+        elif nasa_type == "switch":
+            res_type = cg.bool_
+        else:
+            res_type = cg.float_
+
+        comp = await cg.get_variable(id_obj)
+        template_val = await cg.templatable(write_conf["value"], args, res_type)
+        cg.add(var.add_write(comp, template_val))
+            
     return var
 
 async def to_code(config):

@@ -417,7 +417,9 @@ binary_sensor:
 
 Bear in mind that ENUM_OUT type NASA Labels mean that you will need to assign the outdoor device to the component. It is the outdoor (heat pump) unit that reports this data. Like sensors, binary sensors can also be user configured for NASA codes not listed above. See the Sensors section above on how to do this.
 
-## Automation and FSVs
+## Automations
+
+### Action: samsung_nasa.request_read
 
 Unlike NASA sensors which regularly report data without being requested, FSV values need to be requested. The samsung_nasa.request_read action enables you to request FSV values using ESPHome's powerful automation triggers and conditions. For example you can periodically request readings using ESPHome's interval component:
 
@@ -443,6 +445,74 @@ button:
       - samsung_nasa.request_read:
           id: [fsv_2011, fsv_2012, fsv_2021, fsv_2022]
 ```
+
+### Action: samsung_nasa.request_write
+
+The vast majority of commands consist of a single NASA "message" being sent to the controller. However, some commands initiated via the Samsung wired controller actually send an ordered sequence of commands under the hood (developers call this a "macro"). In order to mimic this macro behaviour you can use the samsung_nasa.request_write action. This action allows you to specify a list of (switch, number, or select) component ids and their corresponding values. Only samsung_nasa platform switches, numbers and selects can be specified. And the values must be appropriate for the type of component - i.e., true/false for switches, numeric values for numbers, and the [correct string option for selects](components/samsung_nasa/nasa/selects.py).
+
+In the following example we set the domestic hot water mode to economy, target temperature to 51.0 and power to on.
+
+```yaml
+
+select:
+  - platform: samsung_nasa
+    message: 0x4066
+    nasa_device_id: nasa_device_1
+    name: Hot Water Mode
+    id: dhw_mode
+
+switch:
+  - platform: samsung_nasa
+    message: 0x4065
+    nasa_device_id: nasa_device_1
+    name: "DHW Power"
+    id: dhw_power
+
+number:
+  - platform: samsung_nasa
+    message: 0x4235
+    nasa_device_id: nasa_device_1
+    name: DHW Target Temperature
+    id: dhw_target
+
+button:
+  - platform: template
+    name: DHW Macro
+    entity_category: config
+    on_press:
+      - samsung_nasa.request_write:
+          writes:
+            - id: dhw_mode
+              value: "Economy"
+            - id: dhw_target
+              value: 51.0
+            - id: dhw_power
+              value: true
+```
+
+You can also expose an action to Home Assistant as a service. In the following example you dynamically set the values at runtime:
+
+```yaml
+api:
+  services:
+    - service: dynamic_dhw_write
+      variables:
+        dhw_mode: string
+        dhw_target: float
+        dhw_power: bool
+      then:
+        - samsung_nasa.request_write:
+            writes:
+              - id: dhw_mode
+                value: !lambda "return dhw_mode;"
+              - id: dhw_target
+                value: !lambda "return dhw_target;"
+              - id: dhw_power
+                value: !lambda "return dhw_power;"
+```
+
+
+WARNING: Use this action with caution and only if you know what you are doing!
 
 ## Climate Component
 
