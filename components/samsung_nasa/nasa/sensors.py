@@ -365,13 +365,9 @@ sensors = {
         NASA_LABEL: "VAR_OUT_ERROR_CODE",
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: sensor_defaults(
-            accuracy_decimals=0,
             icon=ICON_ALERT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
-            filters=[
-                {CONF_DELTA: 1.0},
-                {CONF_LAMBDA: Lambda("return (int)x;")} 
-            ]
+            filters=[{CONF_DELTA: 1.0}]
         )
     },
     0x8236: {
