@@ -119,17 +119,48 @@ text_sensors = {
         },
         CONF_DEFAULTS: text_defaults("mdi:engine")
     },
+    0x8003: {
+        NASA_LABEL: "ENUM_OUT_OPERATION_ODU_STATE",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_NAME: "Outdoor Operation State",
+        NASA_MAPPING: {
+            0: "Stop",
+            1: "Cooling",
+            2: "Heating",
+            3: "Defrost",
+            4: "Oil Recovery",
+            5: "Protection Stop",
+            6: "Limited Operation"
+        }
+    },
+    0x800D: {
+        NASA_LABEL: "ENUM_OUT_STATE_FAN_OPER",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_NAME: "Outdoor Fan Operation State",
+        NASA_MAPPING: {
+            0: "Stop",
+            1: "Normal",
+            2: "Comp Overheat",
+            3: "Deice",
+            4: "Safety",
+            5: "Snow Blow",
+            6: "Night/Quiet",
+            7: "Test Mode"
+        }        
+    },
     0x8061: {
-        NASA_LABEL: "ENUM_OUT_DEICE_STEP_INDOOR",
+        NASA_LABEL: "ENUM_OUT_STATE_DEICE_OPER",
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_NAME: "Defrost Stage",
         NASA_MAPPING: {
             0: "No Defrost",
-            1: "Stage 1", 
-            2: "Stage 2", 
-            3: "Stage 3", 
-            7: "Finished", 
-            255: "No Defrost"
+            1: "Deice Ready", 
+            2: "Deice Entry", 
+            3: "Deice Stage 1",
+            4: "Deice Stage 2",
+            5: "Deice Finishing",
+            6: "Deice Exit",
+            7: "Deice Complete"
         },
         CONF_DEFAULTS: text_defaults("mdi:snowflake-melt")
     },
