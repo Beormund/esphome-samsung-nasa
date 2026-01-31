@@ -39,14 +39,14 @@ text_sensors = {
         },
         CONF_DEFAULTS: text_defaults("mdi:sync")
     },
-    0x4016: {
-        NASA_LABEL: "ENUM_IN_STATE_ANTIFREEZE_OPER",
+    0x420F: {
+        NASA_LABEL: "ENUM_IN_STATE_WATER_PUMP_OPER",
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_NAME: "Frost Protection Status",
         NASA_MAPPING: {
             0: "Off",
-            1: "Running (Level 1)",
-            2: "Running (Level 2)"
+            1: "Normal (Heating/DHW)",
+            2: "Frost Protection"
         },
         CONF_DEFAULTS: text_defaults("mdi:snowflake-alert")
     },
