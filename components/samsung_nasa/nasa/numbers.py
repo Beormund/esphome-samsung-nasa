@@ -344,7 +344,7 @@ numbers = {
      0x42CE: {
         NASA_LABEL: "VAR_IN_FSV_3046",
         NASA_MODE: CONTROLLER_MODE_FSV,
-        CONF_DATA: fsv_numeric_data(3046, 60, 1440, 60),
+        CONF_DATA: fsv_numeric_data(3046, 1, 24),
         CONF_DEFAULTS: number_defaults(
             DEVICE_CLASS_DURATION, 
             UNIT_HOUR, 
