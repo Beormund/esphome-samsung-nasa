@@ -279,6 +279,20 @@ text_sensor:
 | 0x8061    | ENUM_OUT_DEICE_STEP_INDOOR    | Defrost cycle progress (Stage 1, 2, 3 etc)     |
 | 0x8235    | VAR_OUT_ERROR_CODE            | Full system diagnostics and error descriptions |
 
+### Translations and Mappings
+
+It is possible to override the default text returned by the text sensor using the optional mapping field. Refer to [text_sensors.py](/components/samsung_nasa/nasa/text_sensors.py) for the possible numeric values returned by the controller.
+
+```yaml
+text_sensor:
+  - platform: samsung_nasa
+    message: 0x4067
+    name: "Drei-Wege-Ventil" # Specify your own name for the sensor
+    mapping: # <<== Optional mapping field. Specify all or a subset of the mappings
+      0: "Heizbetrieb (Raum)"
+      1: "Warmwasserspeicher"
+```
+
 ## Sensor   
 
 Sensor components are read-only. They report real-time data such as room temperature, energy consumption/production and valve/pump status.
