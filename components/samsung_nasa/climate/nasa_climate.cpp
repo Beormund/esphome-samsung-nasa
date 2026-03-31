@@ -39,7 +39,7 @@ void NASA_Climate::setup() {
       else if (value == "Fan")
         new_mode = climate::CLIMATE_MODE_FAN_ONLY;
       else if (value == "Auto")
-        new_mode = climate::CLIMATE_MODE_AUTO;
+        new_mode = climate::CLIMATE_MODE_HEAT_COOL;
       else
         return;  // Unknown mode
 
@@ -136,7 +136,7 @@ void NASA_Climate::control(const climate::ClimateCall &call) {
             call_sel.set_option("Dry");
           else if (new_mode == climate::CLIMATE_MODE_FAN_ONLY)
             call_sel.set_option("Fan");
-          else if (new_mode == climate::CLIMATE_MODE_AUTO)
+          else if (new_mode == climate::CLIMATE_MODE_HEAT_COOL)
             call_sel.set_option("Auto");
           call_sel.perform();
         }
