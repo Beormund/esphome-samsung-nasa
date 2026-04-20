@@ -59,29 +59,47 @@ void NASA_Client::ack_data(uint8_t id) {
 }
 
 bool NASA_Client::read_data() {
-  // read as long as there is anything to read
-  while (this->available()) {
+  // Process a maximum number of bytes per tick to prevent WDT resets
+  // if there is a massive backlog of data on the RS485 bus.
+  const int MAX_BYTES_PER_LOOP = 256; 
+  int bytes_read = 0;
+
+  // read as long as there is anything to read, up to the limit
+  while (this->available() && bytes_read < MAX_BYTES_PER_LOOP) {
     uint8_t c;
     if (this->read_byte(&c)) {
       this->data_.push_back(c);
+    } else {
+      // If available() is true but read_byte fails (e.g., framing error),
+      // break immediately so we don't get stuck in an infinite loop.
+      ESP_LOGW(TAG, "Failed to read byte from UART; flushing to prevent loop.");
+      this->flush(); //  Clears the corrupted UART buffer
+      break;
     }
+    bytes_read++;
   }
+
   if (this->data_.empty())
     return true;
+
   const uint32_t now = millis();
   auto result = process_data();
+  
   if (result.type == DecodeResultType::Fill)
     return false;
+    
   if (result.type == DecodeResultType::Discard) {
     if (result.bytes == this->data_.size() && now - this->last_transmission_ < 1000)
       return false;
   }
-  if (result.bytes == this->data_.size())
+  
+  if (result.bytes == this->data_.size()) {
     this->data_.clear();
-  else {
+  } else {
     std::move(this->data_.begin() + result.bytes, this->data_.end(), this->data_.begin());
     this->data_.resize(this->data_.size() - result.bytes);
   }
+  
   this->last_transmission_ = now;
   return false;
 }
