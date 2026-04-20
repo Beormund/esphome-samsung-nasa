@@ -21,6 +21,7 @@ void NASA_Climate::setup() {
     this->action_sens_->add_on_state_callback([this](float state) { this->on_action_sens(state); });
   }
   if (this->select_presets_ != nullptr) {
+    this->set_supported_custom_presets(this->select_presets_->traits.get_options());
     this->select_presets_->add_on_state_callback([this](size_t index) {
       auto state = this->select_presets_->traits.get_options()[index];
       this->on_preset_select(state, index);
@@ -216,12 +217,6 @@ climate::ClimateTraits NASA_Climate::traits() {
     }
   }
 
-  traits.set_supported_presets({});
-  if (this->select_presets_ != nullptr) {
-    const auto &options = this->select_presets_->traits.get_options();
-    std::vector<const char *> preset_pointers(options.begin(), options.end());
-    traits.set_supported_custom_presets(preset_pointers);
-  }
   return traits;
 }
 

@@ -123,7 +123,8 @@ nasa_item_base_schema = cv.Schema(
     cv.Schema({
         cv.GenerateID(NASA_CONTROLLER_ID): cv.use_id(NASA_Controller),
         cv.Required(CONF_ID): cv.ensure_list(cv.use_id(NASA_Base))
-    })
+    }),
+    synchronous=False
 )
 async def request_read_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[NASA_CONTROLLER_ID])
@@ -146,7 +147,8 @@ async def request_read_to_code(config, action_id, template_arg, args):
                 cv.Required("value"): cv.templatable(cv.Any(cv.float_, cv.boolean, cv.string_strict)),
             })
         ),
-    })
+    }),
+    synchronous=False
 )
 async def request_write_to_code(config, action_id, template_arg, args):
     parent = await cg.get_variable(config[NASA_CONTROLLER_ID])
