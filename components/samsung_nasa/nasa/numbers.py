@@ -379,8 +379,8 @@ numbers = {
             DEVICE_CLASS_EMPTY,
             "%",
             ICON_EMPTY,
-            "return (x - 50) / 10 * 10 + 306;",
-            "return (x - 306) / 10 * 10 + 50;"
+            "return (uint16_t)(x + 256);",
+            "return (int16_t)(x - 256);"
         )
     },
     0x426D: {
