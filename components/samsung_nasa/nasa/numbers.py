@@ -371,6 +371,18 @@ numbers = {
         CONF_DATA: fsv_numeric_data(3083, 1, 6),
         CONF_DEFAULTS: number_defaults(DEVICE_CLASS_POWER, UNIT_KILOWATT, ICON_POWER)
     },
+    0x42F1: {
+        NASA_LABEL: "VAR_IN_COMPRESSOR_MAX_FREQUENCY_RATIO",
+        NASA_MODE: CONTROLLER_MODE_CONTROL,
+        CONF_DATA: cmd_numeric_data(50, 150, 10),
+        CONF_DEFAULTS: number_defaults(
+            DEVICE_CLASS_EMPTY,
+            "%",
+            ICON_EMPTY,
+            "return (x - 50) / 10 * 10 + 306;",
+            "return (x - 306) / 10 * 10 + 50;"
+        )
+    },
     0x426D: {
         NASA_LABEL: "VAR_IN_FSV_4012",
         NASA_MODE: CONTROLLER_MODE_FSV,
