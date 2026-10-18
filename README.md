@@ -112,7 +112,7 @@ These are the only fields you need to provide. All other fields such as unit of 
 | NASA Code | NASA Label                              | Description                            |
 |-----------|-----------------------------------------|--------------------------------------- |
 | 0x4201    | VAR_IN_TEMP_TARGET_F                    | Zone 1 Target Temperature              |
-| 0x4206    | VAR_IN_TEMP_TARGET_ZONE2_F              | Zone 2 Target Temperature              |
+| 0x42D6    | VAR_IN_TEMP_TARGET_ZONE2_F              | Zone 2 Target Temperature              |
 | 0x4235    | VAR_IN_TEMP_WATER_HEATER_TARGET_F       | DHW Target Temperature                 |
 | 0x4247    | VAR_IN_TEMP_WATER_OUTLET_TARGET_F       | Zone 1 Water Outlet Target Temperature |
 | 0x4248    | VAR_IN_TEMP_WATER_LAW_TARGET_F          | Water Law Target Temperature           |
