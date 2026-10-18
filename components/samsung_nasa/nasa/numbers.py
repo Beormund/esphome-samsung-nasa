@@ -372,15 +372,17 @@ numbers = {
         CONF_DEFAULTS: number_defaults(DEVICE_CLASS_POWER, UNIT_KILOWATT, ICON_POWER)
     },
     0x42F1: {
-        NASA_LABEL: "VAR_IN_COMPRESSOR_MAX_FREQUENCY_RATIO",
+        NASA_LABEL: "VAR_OUT_COMP_FREQ_RATE_CONTROL",
         NASA_MODE: CONTROLLER_MODE_CONTROL,
         CONF_DATA: cmd_numeric_data(50, 150, 10),
         CONF_DEFAULTS: number_defaults(
             DEVICE_CLASS_EMPTY,
             "%",
             ICON_EMPTY,
-            "return (uint16_t)(x + 256);",
-            "return (int16_t)(x - 256);"
+            # Strip off high byte 0x0100
+            "return (int16_t)((int)x & 0xFF);",
+            # Attach Byte 1 = 1 (0x0100)
+            "return (uint16_t)(0x0100 | ((int)x & 0xFF));"
         )
     },
     0x426D: {
