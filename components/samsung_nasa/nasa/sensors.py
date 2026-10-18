@@ -195,6 +195,16 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: temp_sensor_defaults()
     },
+    0x42D8: {
+        NASA_LABEL: "VAR_IN_TEMP_WATER_OUTLET_ZONE1_F",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
+    0x42D9: {
+        NASA_LABEL: "VAR_IN_TEMP_WATER_OUTLET_ZONE2_F",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
     0x42E8: {
         NASA_LABEL: "VAR_IN_FLOW_SENSOR_VOLTAGE",
         NASA_MODE: CONTROLLER_MODE_STATUS,
