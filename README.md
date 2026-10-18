@@ -354,6 +354,8 @@ Here is the python entry that configures the above DHW Temperature sensor:
 | 0x4203    | VAR_IN_TEMP_ROOM_F                        | Zone 1 room temperature                 |
 | 0x427F    | VAR_IN_TEMP_WATER_LAW_F                   | Water law target flow temperature       |
 | 0x42D4    | VAR_IN_TEMP_ZONE2_F                       | Zone 2 room temperature                 |
+| 0x42D8    | VAR_IN_TEMP_WATER_OUTLET_ZONE1_F          | Zone 1 water outlet temperature         |
+| 0x42D9    | VAR_IN_TEMP_WATER_OUTLET_ZONE2_F          | Zone 2 water outlet temperature         |
 | 0x42E8    | VAR_IN_FLOW_SENSOR_VOLTAGE                | Flow sensor voltage                     |
 | 0x42E9    | VAR_IN_FLOW_SENSOR_CALC                   | Flow rate sensor (l/min)                |
 | 0x4284    | NASA_INDOOR_POWER_CONSUMPTION             | Indoor unit power consumption           |
