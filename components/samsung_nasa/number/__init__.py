@@ -106,6 +106,8 @@ CONFIG_SCHEMA = cv.All(
 )
 
 async def to_code(config):
+    # automation.h only includes nasa_number.h when a number is configured
+    cg.add_define("USE_SAMSUNG_NASA_NUMBER")
 
     controller_id_str = str(config[NASA_CONTROLLER_ID])
     selected_model = MODEL_REGISTRY.get(controller_id_str, "STANDARD")
