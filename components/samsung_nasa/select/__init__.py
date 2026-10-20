@@ -99,6 +99,8 @@ CONFIG_SCHEMA = cv.All(
 )
 
 async def to_code(config):
+    # automation.h only includes nasa_select.h when a select is configured
+    cg.add_define("USE_SAMSUNG_NASA_SELECT")
     lambda_expr_from = await cg.process_lambda(config[NASA_LAMBDA_FROM], [(cg.size_t, 'x')], return_type=cg.size_t)
     lambda_expr_to = await cg.process_lambda(config[NASA_LAMBDA_TO], [(cg.size_t,'x')], return_type=cg.size_t)
     device = await cg.get_variable(config[NASA_DEVICE_ID])

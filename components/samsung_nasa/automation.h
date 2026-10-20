@@ -1,11 +1,20 @@
 #pragma once
 
 #include "esphome/core/automation.h"
+#include "esphome/core/defines.h"
 #include "esphome/core/log.h"
 #include "nasa_base.h"
+// Only include the platforms the config actually uses, so a sensors-only
+// (read-only) config compiles without a switch/select/number component.
+#ifdef USE_SAMSUNG_NASA_SWITCH
 #include "switch/nasa_switch.h"
+#endif
+#ifdef USE_SAMSUNG_NASA_SELECT
 #include "select/nasa_select.h"
+#endif
+#ifdef USE_SAMSUNG_NASA_NUMBER
 #include "number/nasa_number.h"
+#endif
 #include "nasa_controller.h"
 #include <vector>
 #include <functional>
@@ -44,6 +53,7 @@ template<typename... Ts> class NASA_Request_Write_Action : public Action<Ts...> 
  public:
   explicit NASA_Request_Write_Action(NASA_Controller *controller) : controller_(controller) {}
 
+#ifdef USE_SAMSUNG_NASA_SWITCH
   void add_write(NASA_Switch *obj, TemplatableValue<bool, Ts...> value) {
     actions_.push_back([obj, value](const Ts &...x) {
       bool val = value.value(x...);
@@ -53,7 +63,9 @@ template<typename... Ts> class NASA_Request_Write_Action : public Action<Ts...> 
       if (val) obj->turn_on(); else obj->turn_off();
     });
   }
+#endif
 
+#ifdef USE_SAMSUNG_NASA_NUMBER
   void add_write(NASA_Number *obj, TemplatableValue<float, Ts...> value) {
     actions_.push_back([obj, value](const Ts &...x) {
       float val = value.value(x...);
@@ -69,7 +81,9 @@ template<typename... Ts> class NASA_Request_Write_Action : public Action<Ts...> 
       call.perform();
     });
   }
+#endif
 
+#ifdef USE_SAMSUNG_NASA_SELECT
   void add_write(NASA_Select *obj, TemplatableValue<std::string, Ts...> value) {
     actions_.push_back([obj, value](const Ts &...x) {
       std::string val = value.value(x...);
@@ -85,6 +99,7 @@ template<typename... Ts> class NASA_Request_Write_Action : public Action<Ts...> 
       call.perform();
     });
   }
+#endif
 
   void play(const Ts &...x) override {
     for (auto &action : actions_) {
