@@ -23,6 +23,10 @@ void NASA_TextSensor::on_receive_structure(const uint8_t *data, uint8_t size) {
     snprintf(buf, sizeof(buf), "DB%02X-%02X%02X%02X %02X%02X%02X", data[0], data[1], data[2], data[3], data[4], data[5],
              data[6]);
     s = buf;
+  } else if (this->structure_format_ == 3 && size >= 11) {
+    snprintf(buf, sizeof(buf), "DB%02X-%02X%02X%02X %02X%02X%02X", data[0], data[1], data[2], data[3], data[8], data[9],
+             data[10]);
+    s = buf;
   } else if (this->structure_format_ == 2 && size >= 10) {
     std::string digits;
     for (uint8_t i = 0; i < 10; i++) {

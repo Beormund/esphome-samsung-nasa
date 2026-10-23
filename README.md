@@ -297,7 +297,9 @@ text_sensor:
 
 Messages of NASA type *structure* (e.g. `0x0600`, `0x0608`, `0x060C`) carry a block of bytes instead of a number. A text
 sensor shows them as text if the content is printable, otherwise as hex. Known layouts are formatted automatically
-(verified against Samsung S-NET Pro 2) and can be selected with `structure_format` (`hex`, `dbcode`, `product_option`):
+(verified against Samsung S-NET Pro 2) and can be selected with `structure_format` (`hex`, `dbcode`, `dbcode_inverter`, `product_option`). Further verified structures:
+`0x061A` product model name and `0x0605` location (text), `0x0607` serial number (text), `0x8601` inverter micom
+(`dbcode_inverter`, e.g. `DB91-02411A 100004`):
 
 ```yaml
 text_sensor:
