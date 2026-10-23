@@ -17,7 +17,7 @@ class NASA_TextSensor : public text_sensor::TextSensor, public NASA_Base {
   void on_receive(long value) override;
   void on_receive_structure(const uint8_t *data, uint8_t size) override;
   // 0 = text if printable, else hex (default), 1 = Samsung part number with date "DB91-02103B 231108",
-  // 2 = product option "[0]12300-[1]10000-[2]00000-[3]00002", 3 = inverter micom (part number bytes 0-3, date bytes 8-10)
+  // 2 = product option "[0]12300-[1]10000-[2]00000-[3]00002", 3 = inverter micom (part number bytes 0-3, date bytes 8-10), 4 = MAC address
   void set_structure_format(uint8_t format) { this->structure_format_ = format; }
   void set_parent(NASA_Controller *controller);
 
