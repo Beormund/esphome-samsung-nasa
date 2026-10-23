@@ -293,6 +293,29 @@ text_sensor:
       1: "Warmwasserspeicher"
 ```
 
+### Structure messages
+
+Messages of NASA type *structure* (e.g. `0x0600`, `0x0608`, `0x060C`) carry a block of bytes instead of a number. A text
+sensor shows them as text if the content is printable, otherwise as hex. Known layouts are formatted automatically
+(verified against Samsung S-NET Pro 2) and can be selected with `structure_format` (`hex`, `dbcode`, `product_option`):
+
+```yaml
+text_sensor:
+  - platform: samsung_nasa
+    message: 0x0608               # main micom, e.g. "DB91-02103B 231108" (dbcode is the default for 0x0608/0x060C)
+    nasa_device_id: samsung_indoor
+    name: "Indoor main micom"
+  - platform: samsung_nasa
+    message: 0x0600               # product option, e.g. "[0]12300-[1]10000-[2]00000-[3]00002"
+    nasa_device_id: samsung_indoor
+    name: "Product option"
+  - platform: samsung_nasa
+    message: 0x860D
+    nasa_device_id: samsung_outdoor
+    name: "Outdoor model information"
+    structure_format: hex         # e.g. "08 08 00 12 33"
+```
+
 ## Sensor   
 
 Sensor components are read-only. They report real-time data such as room temperature, energy consumption/production and valve/pump status.

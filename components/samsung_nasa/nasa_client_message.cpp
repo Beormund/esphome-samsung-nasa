@@ -29,9 +29,15 @@ MessageSet MessageSet::decode(std::vector<uint8_t> &data, unsigned int index, in
       }
       Buffer buffer;
       set.size = data.size() - index - 3;  // 3=end bytes
+      if (set.size < 2 || set.size - 2 > (int) sizeof(buffer.data)) {
+        ESP_LOGE(TAG, "structure size out of range: %d", set.size);
+        buffer.size = 0;
+        set.structure = buffer;
+        return set;
+      }
       buffer.size = set.size - 2;
       for (int i = 0; i < buffer.size; i++) {
-        buffer.data[i] = data[i];
+        buffer.data[i] = data[index + 2 + i];  // payload starts after the 2-byte message number
       }
       set.structure = buffer;
       break;

@@ -1,4 +1,5 @@
 #include "nasa_text_sensor.h"
+#include <cstdio>
 
 namespace esphome {
 namespace samsung_nasa {
@@ -12,6 +13,44 @@ void NASA_TextSensor::on_receive(long value) {
       this->publish_state(std::to_string(value));
     }
     this->last_numeric_value_ = value;
+  }
+}
+
+void NASA_TextSensor::on_receive_structure(const uint8_t *data, uint8_t size) {
+  std::string s;
+  char buf[48];
+  if (this->structure_format_ == 1 && size >= 7) {
+    snprintf(buf, sizeof(buf), "DB%02X-%02X%02X%02X %02X%02X%02X", data[0], data[1], data[2], data[3], data[4], data[5],
+             data[6]);
+    s = buf;
+  } else if (this->structure_format_ == 2 && size >= 10) {
+    std::string digits;
+    for (uint8_t i = 0; i < 10; i++) {
+      snprintf(buf, sizeof(buf), "%02X", data[i]);
+      digits += buf;
+    }
+    for (uint8_t g = 0; g < 4; g++)
+      s += (g ? "-[" : "[") + std::to_string(g) + "]" + digits.substr(g * 5, 5);
+  } else {
+    // text if all bytes (ignoring trailing 0x00/0xFF/space) are printable ASCII, otherwise hex "08 08 00 12 33"
+    uint8_t n = size;
+    while (n > 0 && (data[n - 1] == 0x00 || data[n - 1] == 0xFF || data[n - 1] == ' '))
+      n--;
+    bool text = n >= 2;
+    for (uint8_t i = 0; i < n && text; i++)
+      text = data[i] >= 0x20 && data[i] < 0x7F;
+    if (text) {
+      s.assign(reinterpret_cast<const char *>(data), n);
+    } else {
+      for (uint8_t i = 0; i < size; i++) {
+        snprintf(buf, sizeof(buf), i ? " %02X" : "%02X", data[i]);
+        s += buf;
+      }
+    }
+  }
+  if (s != this->last_structure_) {
+    this->last_structure_ = s;
+    this->publish_state(s);
   }
 }
 
