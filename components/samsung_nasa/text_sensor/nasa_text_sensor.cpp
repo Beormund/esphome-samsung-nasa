@@ -40,11 +40,13 @@ void NASA_TextSensor::on_receive_structure(const uint8_t *data, uint8_t size) {
     uint8_t n = size;
     while (n > 0 && (data[n - 1] == 0x00 || data[n - 1] == 0xFF || data[n - 1] == ' '))
       n--;
-    bool text = n >= 2;
-    for (uint8_t i = 0; i < n && text; i++)
+    // text with a leading length byte, e.g. 0x061A: 11 'EHS MONO LOWTEMP' 00
+    uint8_t start = (n >= 3 && data[0] < 0x20 && data[0] <= size - 1) ? 1 : 0;
+    bool text = n - start >= 2;
+    for (uint8_t i = start; i < n && text; i++)
       text = data[i] >= 0x20 && data[i] < 0x7F;
     if (text) {
-      s.assign(reinterpret_cast<const char *>(data), n);
+      s.assign(reinterpret_cast<const char *>(data + start), n - start);
     } else {
       for (uint8_t i = 0; i < size; i++) {
         snprintf(buf, sizeof(buf), i ? " %02X" : "%02X", data[i]);

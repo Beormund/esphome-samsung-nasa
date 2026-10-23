@@ -57,7 +57,7 @@ DecodeResult Packet::decode(std::vector<uint8_t> &data) {
   cursor++;
   messages.clear();
   for (int i = 1; i <= capacity; ++i) {
-    MessageSet set = MessageSet::decode(data, cursor, capacity);
+    MessageSet set = MessageSet::decode(data, cursor, capacity, size + 2);
     messages.push_back(set);
     cursor += set.size;
   }
