@@ -71,19 +71,25 @@ void MessageSet::encode(std::vector<uint8_t> &data) {
 }
 
 std::string MessageSet::to_string() {
+  char buf[64];
   switch (type) {
     case Enum:
-      return "Enum " + format_hex_pretty(messageNumber, '\0', false) + " = " + std::to_string(value);
+      snprintf(buf, sizeof(buf), "Enum %04X = %ld", messageNumber, value);
+      return std::string(buf);
     case Variable:
-      return "Variable " + format_hex_pretty(messageNumber, '\0', false) + " = " + std::to_string(value);
+      snprintf(buf, sizeof(buf), "Variable %04X = %ld", messageNumber, value);
+      return std::string(buf);
     case LongVariable:
-      return "LongVariable " + format_hex_pretty(messageNumber, '\0', false) + " = " + std::to_string(value);
+      snprintf(buf, sizeof(buf), "LongVariable %04X = %ld", messageNumber, value);
+      return std::string(buf);
     case Structure:
-      return "Structure " + format_hex_pretty(messageNumber, '\0', false) + " = " + std::to_string(structure.size);
+      snprintf(buf, sizeof(buf), "Structure %04X = %zu", messageNumber, structure.size);
+      return std::string(buf);
     default:
       return "Unknown";
   }
 }
+
 
 }  // namespace samsung_nasa
 }  // namespace esphome

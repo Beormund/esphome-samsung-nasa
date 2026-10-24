@@ -5,8 +5,6 @@
 namespace esphome {
 namespace samsung_nasa {
 
-
-
 Packet Packet::create_partial(Address da, DataType dataType) {
   Packet packet;
   packet.sa = Address::get_my_address();
@@ -20,9 +18,7 @@ Packet Packet::create_partial(Address da, DataType dataType) {
 
 int Packet::packet_counter_ = 0;
 
-int Packet::get_packet_number() {
-    return ++packet_counter_;
-}
+int Packet::get_packet_number() { return ++packet_counter_; }
 
 DecodeResult Packet::decode(std::vector<uint8_t> &data) {
   const uint16_t size = (uint16_t) data[1] << 8 | (uint16_t) data[2];
@@ -30,20 +26,23 @@ DecodeResult Packet::decode(std::vector<uint8_t> &data) {
     return {DecodeResultType::Fill};
   }
   if (size > 1500) {
-    ESP_LOGW(TAG, "Packet exceeds size limits: %s", format_hex_pretty(data).c_str());
+    char hex_buf_33[512];
+    ESP_LOGW(TAG, "Packet exceeds size limits: %s", format_hex_to(hex_buf_33, data));
     return {DecodeResultType::Discard};
   }
   if (size + 2 > data.size())
     return {DecodeResultType::Fill};
   if (data[size + 1] != 0x34) {
-    ESP_LOGW(TAG, "invalid end byte: %s", format_hex_pretty(data).c_str());
+    char hex_buf_39[512];
+    ESP_LOGW(TAG, "invalid end byte: %s", format_hex_to(hex_buf_39, data));
     return {DecodeResultType::Discard};
   }
   uint16_t crc_actual = crc16be(data.data() + 3, size - 4);
-  uint16_t crc_expected = (int)data[size - 1] << 8 | (int)data[size];
+  uint16_t crc_expected = (int) data[size - 1] << 8 | (int) data[size];
   if (crc_expected != crc_actual) {
+    char hex_buf_46[512];
     ESP_LOGW(TAG, "NASA: invalid crc - got %d but should be %d: %s", crc_actual, crc_expected,
-             format_hex_pretty(data).c_str());
+             format_hex_to(hex_buf_46, data));
     return {DecodeResultType::Discard};
   }
   unsigned int cursor = 3;
@@ -61,7 +60,7 @@ DecodeResult Packet::decode(std::vector<uint8_t> &data) {
     messages.push_back(set);
     cursor += set.size;
   }
-  return {DecodeResultType::Processed, (uint16_t)(size + 2)};
+  return {DecodeResultType::Processed, (uint16_t) (size + 2)};
 }
 
 std::vector<uint8_t> Packet::encode() {

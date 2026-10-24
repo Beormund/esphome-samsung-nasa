@@ -21,7 +21,13 @@ void NASA_Climate::setup() {
     this->action_sens_->add_on_state_callback([this](float state) { this->on_action_sens(state); });
   }
   if (this->select_presets_ != nullptr) {
-    this->set_supported_custom_presets(this->select_presets_->traits.get_options());
+    auto const &options = this->select_presets_->traits.get_options();
+    std::vector<const char *> custom_presets;
+    custom_presets.reserve(options.size());
+    for (size_t i = 0; i < options.size(); ++i) {
+        custom_presets.push_back(options[i]);
+    }
+    this->set_supported_custom_presets(custom_presets);
     this->select_presets_->add_on_state_callback([this](size_t index) {
       auto state = this->select_presets_->traits.get_options()[index];
       this->on_preset_select(state, index);
@@ -29,7 +35,7 @@ void NASA_Climate::setup() {
   }
   if (this->mode_select_ != nullptr) {
     this->mode_select_->add_on_state_callback([this](size_t index) {
-      auto value = this->mode_select_->traits.get_options()[index];
+      std::string value = this->mode_select_->traits.get_options()[index];
       climate::ClimateMode new_mode;
       if (value == "Heat")
         new_mode = climate::CLIMATE_MODE_HEAT;
