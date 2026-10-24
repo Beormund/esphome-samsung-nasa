@@ -15,9 +15,9 @@ class NASA_Base {
                    const NASA_Device *device)
       : label_{label}, message_{message}, nasa_mode_{nasa_mode}, device_{device} {};
   virtual ~NASA_Base() {};
-  const uint16_t get_message() const { return this->message_; }
+  uint16_t get_message() const { return this->message_; }
   const std::string get_label() const { return this->label_; }
-  const ControllerMode get_mode() const { return this->nasa_mode_; }
+  ControllerMode get_mode() const { return this->nasa_mode_; }
   const std::string get_address() const { return this->device_->get_address(); }
   // Must implement in each component type
   virtual void on_receive(long value) = 0;

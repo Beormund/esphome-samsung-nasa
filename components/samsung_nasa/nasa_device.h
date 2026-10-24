@@ -11,7 +11,7 @@ class NASA_Device {
   NASA_Device(const std::string address, const AddressClass address_class)
       : address_{address}, address_class_{address_class} {};
   const std::string get_address() const { return this->address_; };
-  const AddressClass get_address_class() const { return this->address_class_; };
+  AddressClass get_address_class() const { return this->address_class_; };
 
  protected:
   const std::string address_;         // E.g. "20.00.00"

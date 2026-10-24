@@ -21,7 +21,7 @@ template<typename T> class LimitedQueue {
   const T &back() const { return this->queue_.back(); }
   void pop() { this->queue_.pop(); }
   bool empty() const { return this->queue_.empty(); }
-  const size_t size() const { return this->queue_.size(); }
+  size_t size() const { return this->queue_.size(); }
 
  protected:
   std::queue<T> queue_;
@@ -31,7 +31,7 @@ template<typename T> class LimitedQueue {
 template<typename T> class BatchDispatcher {
  public:
   BatchDispatcher(const size_t limit, const size_t batch, const size_t delay)
-      : batch_size_{batch}, delay_{delay}, limited_queue_{limit} {}
+      : limited_queue_{limit}, batch_size_{batch}, delay_{delay} {}
   using RegisterReceiveFunc = std::function<void(std::vector<T>)>;
   void register_receive_callback(RegisterReceiveFunc rrf) { this->receiveFunc_ = rrf; }
   void setup() { this->last_receive_ = millis(); }
