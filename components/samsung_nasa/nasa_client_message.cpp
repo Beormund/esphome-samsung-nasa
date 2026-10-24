@@ -6,7 +6,7 @@
 namespace esphome {
 namespace samsung_nasa {
 
-MessageSet MessageSet::decode(std::vector<uint8_t> &data, unsigned int index, int capacity) {
+MessageSet MessageSet::decode(std::vector<uint8_t> &data, unsigned int index, int capacity, unsigned int packet_end) {
   MessageSet set = MessageSet(((uint32_t) data[index] * 256U + (uint32_t) data[index + 1]));
   switch (set.type) {
     case Enum:
@@ -28,10 +28,16 @@ MessageSet MessageSet::decode(std::vector<uint8_t> &data, unsigned int index, in
         return set;
       }
       Buffer buffer;
-      set.size = data.size() - index - 3;  // 3=end bytes
+      set.size = (int) packet_end - (int) index - 3;  // 3 = CRC + end byte // use the packet end, not the buffer size: the buffer may already hold the next packet
+      if (set.size < 2 || set.size - 2 > (int) sizeof(buffer.data)) {
+        ESP_LOGE(TAG, "structure size out of range: %d", set.size);
+        buffer.size = 0;
+        set.structure = buffer;
+        return set;
+      }
       buffer.size = set.size - 2;
       for (int i = 0; i < buffer.size; i++) {
-        buffer.data[i] = data[i];
+        buffer.data[i] = data[index + 2 + i];  // payload starts after the 2-byte message number
       }
       set.structure = buffer;
       break;
