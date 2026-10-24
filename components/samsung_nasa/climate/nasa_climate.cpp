@@ -35,7 +35,7 @@ void NASA_Climate::setup() {
   }
   if (this->mode_select_ != nullptr) {
     this->mode_select_->add_on_state_callback([this](size_t index) {
-      auto value = this->mode_select_->traits.get_options()[index];
+      std::string value = this->mode_select_->traits.get_options()[index];
       climate::ClimateMode new_mode;
       if (value == "Heat")
         new_mode = climate::CLIMATE_MODE_HEAT;
