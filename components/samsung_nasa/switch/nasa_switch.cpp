@@ -10,6 +10,8 @@ void NASA_Switch::write_state(bool value) {
 
 void NASA_Switch::on_receive(long value) {
   auto new_state = this->lambda_from_(value);
+  // Switch::publish_state() does not set has_state, so has_state() would stay false in lambdas forever
+  this->set_has_state(true);
   this->publish_state(new_state);
 }
 
