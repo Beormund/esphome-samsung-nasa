@@ -216,7 +216,10 @@ void NASA_Client::process_nasa_packet() {
 void NASA_Client::process_messageset(std::string source, std::string dest, MessageSet &message) {
   // Invoike the message received callback
   auto result = this->receiveFunc_(source, message);
-  if (debug_log_messages && result) {
+  if (debug_log_messages && result && message.type == Structure) {
+    // structures have no numeric value
+    ESP_LOGW(TAG, "Src:%s Dst:%s %s", source.c_str(), dest.c_str(), message.to_string().c_str());
+  } else if (debug_log_messages && result) {
     ESP_LOGW(TAG, "Src:%s Dst:%s 0x%X = %ld", source.c_str(), dest.c_str(), message.messageNumber, message.value);
   } else if (debug_log_undefined_messages && !result) {
     ESP_LOGW(TAG, "Undefined s:%s d:%s %s", source.c_str(), dest.c_str(), message.to_string().c_str());

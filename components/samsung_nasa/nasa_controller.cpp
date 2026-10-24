@@ -21,7 +21,10 @@ void NASA_Controller::setup() {
       for (auto const &component : components) {
         auto device_address = component->get_address();
         if (source_address == device_address) {
-          component->on_receive(message.value);
+          if (message.type == Structure)
+            component->on_receive_structure(message.structure.data, message.structure.size);
+          else
+            component->on_receive(message.value);
           result = true;
         }
       }

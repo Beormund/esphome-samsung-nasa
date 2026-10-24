@@ -25,7 +25,7 @@ struct MessageSet {
     this->messageNumber = messageNumber;
     this->type = (MessageSetType) (((uint32_t) messageNumber & 1536) >> 9);
   };
-  static MessageSet decode(std::vector<uint8_t> &data, unsigned int index, int capacity);
+  static MessageSet decode(std::vector<uint8_t> &data, unsigned int index, int capacity, unsigned int packet_end);
   void encode(std::vector<uint8_t> &data);
   std::string to_string();
 };
