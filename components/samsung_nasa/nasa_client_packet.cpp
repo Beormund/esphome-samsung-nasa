@@ -21,9 +21,16 @@ int Packet::packet_counter_ = 0;
 int Packet::get_packet_number() { return ++packet_counter_; }
 
 DecodeResult Packet::decode(std::vector<uint8_t> &data) {
-  const uint16_t size = (uint16_t) data[1] << 8 | (uint16_t) data[2];
   if (data.size() < 4) {
     return {DecodeResultType::Fill};
+  }
+  // read the length only after the buffer check above (data[1..2] may not exist yet)
+  const uint16_t size = (uint16_t) data[1] << 8 | (uint16_t) data[2];
+  // shortest valid packet: size(2) + addresses(3+3) + command(3) + capacity(1) + crc(2) + end(1) = 14;
+  // anything shorter would make the crc range negative and the header reads go past the packet
+  if (size < 14) {
+    ESP_LOGW(TAG, "Packet too short: size %u", (unsigned) size);
+    return {DecodeResultType::Discard};
   }
   if (size > 1500) {
     char hex_buf_33[512];
