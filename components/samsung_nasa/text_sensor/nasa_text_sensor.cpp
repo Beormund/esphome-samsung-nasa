@@ -10,10 +10,19 @@ void NASA_TextSensor::on_receive(long value) {
     if (this->lookup_func_) {
       this->publish_state(this->lookup_func_(value));
     } else {
-      this->publish_state(std::to_string(value));
+      this->publish_state(this->format_numeric_(value));
     }
     this->last_numeric_value_ = value;
   }
+}
+
+std::string NASA_TextSensor::format_numeric_(long value) const {
+  if (!this->numeric_hex_)
+    return std::to_string(value);
+  // 32-bit two's complement, so negative values show the bit pattern as sent on the bus
+  char buf[11];
+  snprintf(buf, sizeof(buf), "0x%08X", (unsigned) (uint32_t) value);
+  return std::string(buf);
 }
 
 void NASA_TextSensor::on_receive_structure(const uint8_t *data, uint8_t size) {

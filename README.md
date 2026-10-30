@@ -318,6 +318,26 @@ text_sensor:
     structure_format: hex         # e.g. "08 08 00 12 33"
 ```
 
+### Large numeric values
+
+Sensor components publish a 32-bit float, which holds integers exactly only up to 2^24 (16,777,216). Larger values
+lose their lowest bits: e.g. `0x8404` = 75530754 (`0x04808202`) arrives in Home Assistant as 75530752 (`0x04808200`),
+so a change of bit 1 is not visible at all. Energy counters such as `0x8414` or `0x4427` are affected too once they
+exceed 2^24. For an exact value use a text sensor (without mapping); `numeric_format: hex` shows the bit pattern:
+
+```yaml
+text_sensor:
+  - platform: samsung_nasa
+    message: 0x8404
+    nasa_device_id: samsung_outdoor
+    name: "Outdoor 0x8404 exact"   # e.g. "75530754"
+  - platform: samsung_nasa
+    message: 0x8404
+    nasa_device_id: samsung_outdoor
+    name: "Outdoor 0x8404 hex"
+    numeric_format: hex            # e.g. "0x04808202"
+```
+
 ## Sensor   
 
 Sensor components are read-only. They report real-time data such as room temperature, energy consumption/production and valve/pump status.
