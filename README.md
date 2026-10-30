@@ -80,6 +80,20 @@ samsung_nasa:
 
 The nasa_client configuration options are to do with ensuring NASA message delivery via a retry mechansim. Thanks and acknowledgment go to atanasenko for the [retry mechanism.](https://github.com/omerfaruk-aran/esphome_samsung_hvac_bus/commit/1030af3bcc4f3dc688be643e0c2ae65b6401fcc5)
 
+### Debug output
+
+- `debug_log_messages`: every received value as `Src:… Dst:… 0x4238 = 326 n=1234`, plus the packets of non-notification types.
+- `debug_log_undefined_messages`: values the component has no definition for, also with `n=`.
+- `debug_log_messages_raw`: the unmodified bytes of every packet (valid and rejected), split into parts of at most 160 bytes so no line is cut off by syslog or the API log:
+  `RAW s=2C81A9D1 n=1234 ok len=64 p=1/1 3200402000FF…34`
+
+`n` is a receive number that counts every packet since boot, including rejected ones. It links each value line to its packet and its RAW line, and a gap in `n` shows a lost or rejected packet. `s` is a random session id per boot.
+
+While any of the three options is on, a statistics line is logged once a minute (counters since boot):
+`STATS s=2C81A9D1 n=666264 ok=665340 size=66 end=584 crc=274 uart=0`
+(`ok` = valid packets, `size` = length out of range, `end` = wrong end byte, `crc` = checksum error, `uart` = UART read errors).
+Warnings for rejected packets name the reason and `n`; their bytes are in the RAW lines when `debug_log_messages_raw` is on.
+
  - **silence_interval**: (Optional) The time to wait since the last wire activity before sending. 
  - **retry_interval**: (Optional) The minimum time before a retry attempt.  
  - **min_retries**: (Optional) The minimum number of retries, even beyond timeout. 
