@@ -165,7 +165,7 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: temp_sensor_defaults()
     },
-    # Capacity request/absolute: kW = raw / 8.6 (Samsung NASA protocol definition); 32767 = not available
+    # Capacity request/absolute: kW = raw / 8.6 (EHS Mono 14 kW: 120 -> 13.95 kW); 32767 = not available
     0x4211: {
         NASA_LABEL: "VAR_IN_CAPACITY_REQUEST",
         NASA_MODE: CONTROLLER_MODE_STATUS,
