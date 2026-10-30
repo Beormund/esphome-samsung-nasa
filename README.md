@@ -80,6 +80,8 @@ samsung_nasa:
 
 The nasa_client configuration options are to do with ensuring NASA message delivery via a retry mechansim. Thanks and acknowledgment go to atanasenko for the [retry mechanism.](https://github.com/omerfaruk-aran/esphome_samsung_hvac_bus/commit/1030af3bcc4f3dc688be643e0c2ae65b6401fcc5)
 
+`debug_log_messages` logs every received value and the full packets of non-notification types (Read, Write, Request, Response, Ack, Nack), including the reads this component sends. With it set to false these packet dumps are not logged.
+
  - **silence_interval**: (Optional) The time to wait since the last wire activity before sending. 
  - **retry_interval**: (Optional) The minimum time before a retry attempt.  
  - **min_retries**: (Optional) The minimum number of retries, even beyond timeout. 

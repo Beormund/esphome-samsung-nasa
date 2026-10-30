@@ -97,6 +97,10 @@ std::vector<std::string> Packet::to_string(optional<std::string> prefix) {
 }
 
 void Packet::log_multiline(optional<std::string> prefix, log_lines_t func) {
+  // packet dumps (Read, Write, Request, Response, Ack, Nack) are debug output; without
+  // debug_log_messages every poll and every external write would end up as a warning
+  if (!debug_log_messages)
+    return;
   for (const auto &line : this->to_string(prefix)) {
     func(TAG, line.c_str());
   }
