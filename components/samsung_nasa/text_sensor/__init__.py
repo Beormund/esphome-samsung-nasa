@@ -18,6 +18,8 @@ from .. import (
 from ..nasa.text_sensors import text_sensors
 
 CONF_STRUCTURE_FORMAT = "structure_format"
+CONF_NUMERIC_FORMAT = "numeric_format"
+NUMERIC_FORMATS = ["decimal", "hex"]
 STRUCTURE_FORMATS = {"hex": 0, "dbcode": 1, "product_option": 2, "dbcode_inverter": 3, "mac": 4}
 # Defaults for structure messages whose layout was verified against Samsung S-NET Pro 2
 STRUCTURE_FORMAT_DEFAULTS = {
@@ -87,6 +89,7 @@ CONFIG_SCHEMA = cv.All(
         cv.Required(NASA_MESSAGE): cv.hex_int,
         cv.Optional(NASA_MAPPING): cv.Schema({cv.hex_int: cv.string_strict}),
         cv.Optional(CONF_STRUCTURE_FORMAT): cv.one_of(*STRUCTURE_FORMATS, lower=True),
+        cv.Optional(CONF_NUMERIC_FORMAT): cv.one_of(*NUMERIC_FORMATS, lower=True),
     }, extra=cv.ALLOW_EXTRA),
     validate,
     text_sensor.text_sensor_schema(NASA_TextSensor)
@@ -96,6 +99,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Required(NASA_MESSAGE): cv.hex_int,
             cv.Optional(NASA_MAPPING): cv.Schema({cv.hex_int: cv.string_strict}),
             cv.Optional(CONF_STRUCTURE_FORMAT): cv.one_of(*STRUCTURE_FORMATS, lower=True),
+            cv.Optional(CONF_NUMERIC_FORMAT): cv.one_of(*NUMERIC_FORMATS, lower=True),
         }
     )
     .extend(nasa_item_base_schema)
@@ -128,6 +132,9 @@ async def to_code(config):
     fmt = config.get(CONF_STRUCTURE_FORMAT, STRUCTURE_FORMAT_DEFAULTS.get(config[NASA_MESSAGE], "hex"))
     if fmt != "hex":
         cg.add(var.set_structure_format(STRUCTURE_FORMATS[fmt]))
+
+    if config.get(CONF_NUMERIC_FORMAT) == "hex":
+        cg.add(var.set_numeric_hex(True))
 
     cg.add(var.set_parent(controller))
     cg.add(controller.register_component(var))
