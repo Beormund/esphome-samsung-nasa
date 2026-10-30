@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+#include <cstddef>
 #include <map>
 #include <string>
 
@@ -10,6 +12,11 @@ static const char *TAG = "samsung_nasa";
 extern bool debug_log_raw_bytes;
 extern bool debug_log_undefined_messages;
 extern bool debug_log_messages;
+// Diagnostics: session id, receive number per packet and error counters
+extern uint32_t diag_session;
+extern uint32_t diag_rx_seq;
+extern uint32_t diag_ok, diag_err_size, diag_err_end, diag_err_crc, diag_err_uart;
+void diag_log_raw(const char *kind, const uint8_t *data, size_t len);
 extern uint16_t silence_interval;
 extern uint16_t retry_interval;
 extern uint8_t min_retries;

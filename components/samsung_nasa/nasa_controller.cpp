@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <cstdio>
+#include "esphome/core/log.h"
 #include "esphome/core/application.h"
 #include "nasa_controller.h"
 #include "vector"
@@ -9,6 +12,25 @@ namespace samsung_nasa {
 bool debug_log_raw_bytes = false;
 bool debug_log_undefined_messages = false;
 bool debug_log_messages = false;
+uint32_t diag_session = 0;
+uint32_t diag_rx_seq = 0;
+uint32_t diag_ok = 0, diag_err_size = 0, diag_err_end = 0, diag_err_crc = 0, diag_err_uart = 0;
+
+// Unmodified packet bytes in numbered parts, so no log line exceeds typical syslog/API line limits:
+// RAW s=<session> n=<receive number> <kind> len=<bytes> p=<part>/<parts> <hex>
+void diag_log_raw(const char *kind, const uint8_t *data, size_t len) {
+  static const size_t PART = 160;
+  const size_t parts = len == 0 ? 1 : (len + PART - 1) / PART;
+  char hex[2 * PART + 1];
+  for (size_t p = 0; p < parts; p++) {
+    const size_t from = p * PART, n = std::min(PART, len - from);
+    for (size_t i = 0; i < n; i++)
+      snprintf(hex + 2 * i, 3, "%02X", data[from + i]);
+    hex[2 * n] = 0;
+    ESP_LOGW(TAG, "RAW s=%08X n=%u %s len=%u p=%u/%u %s", (unsigned) diag_session, (unsigned) diag_rx_seq, kind,
+             (unsigned) len, (unsigned) (p + 1), (unsigned) parts, hex);
+  }
+}
 
 void NASA_Controller::setup() {
   // register callbacks with NASA_Client
