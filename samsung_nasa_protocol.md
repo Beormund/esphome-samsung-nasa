@@ -52,13 +52,13 @@ Thank you to lanwin, who implemented [esphome\_samsung\_ac](https://github.com/l
 
 ## Observed bus behaviour
 
-Observations from an EHS Mono (AE260RNWMGG / AE140BXYDGG with Wi-Fi kit MIM-H04EN), verified against Samsung
-S-NET Pro 2 on 23.10.2026. Meanings marked *assumed* are derived from captures, not from Samsung documents.
+Observations from an EHS Mono (AE260RNWMGG / AE140BXYDGG with Wi-Fi kit MIM-H04EN), verified against a
+service tool on 23.10.2026. Meanings marked *assumed* are derived from captures, not from Samsung documents.
 
 ### Addresses
 
-An address is `class.channel.address`. S-NET shows the last byte in decimal (`62.00.91` = `62.00.145`).
-Seen on the bus: `10.00.00` outdoor, `20.00.00` indoor, `62.00.91` Wi-Fi kit, `80.ff.00`/`80.ff.01` S-NET
+An address is `class.channel.address`. The service tool shows the last byte in decimal (`62.00.91` = `62.00.145`).
+Seen on the bus: `10.00.00` outdoor, `20.00.00` indoor, `62.00.91` Wi-Fi kit, `80.ff.00`/`80.ff.01` service tool
 (class JIGTester), broadcasts such as `b0.00.ff`, `b0.ff.10`, `b2.00.20`, `b3.00.ff`.
 
 ### Wi-Fi kit plug-and-play (assumed)
@@ -79,11 +79,11 @@ After power-up the Wi-Fi kit requests an address. Messages (matching the former 
 The Wi-Fi kit then reads single FSV settings from the indoor unit with structure message `0x4612`. Request payload:
 FSV number (2 bytes, e.g. `04 07` = 1031) followed by zeros. Response payload (15 bytes):
 `[FSV 2B] 01 [type: 0A = numeric x0.1, 01 = option] 01 [min 2B] [max 2B] [value 2B] 01 00 00 00`, signed big endian.
-Example: FSV 1031 → min 37.0, max 70.0, value 70.0. All 20 values read at start-up matched S-NET.
+Example: FSV 1031 → min 37.0, max 70.0, value 70.0. All 20 values read at start-up matched the service tool.
 
 ### Verified structure messages
 
-Structures only appear when requested (S-NET, Wi-Fi kit). Payload layouts verified byte for byte against S-NET Pro 2:
+Structures only appear when requested (service tool, Wi-Fi kit). Payload layouts verified byte for byte against a service tool:
 
 | Message | Source | Content | `structure_format` |
 |---|---|---|---|
@@ -97,7 +97,7 @@ Structures only appear when requested (S-NET, Wi-Fi kit). Payload layouts verifi
 | 0x8601 | outdoor | inverter micom `DB91-02411A 100004` (bytes 0-3 and 8-10) | `dbcode_inverter` |
 | 0x461E | indoor | error history (all zero without errors) | hex |
 
-Related numeric message: `0x0025` from the Wi-Fi kit = multi-tenant number, 255 = not supported (S-NET "Not Support").
+Related numeric message: `0x0025` from the Wi-Fi kit = multi-tenant number, 255 = not supported (shown as "Not Support" by the service tool).
 
 ## Message Numbers
 
