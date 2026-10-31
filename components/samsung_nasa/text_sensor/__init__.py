@@ -21,7 +21,7 @@ CONF_STRUCTURE_FORMAT = "structure_format"
 CONF_NUMERIC_FORMAT = "numeric_format"
 NUMERIC_FORMATS = ["decimal", "hex"]
 STRUCTURE_FORMATS = {"hex": 0, "dbcode": 1, "product_option": 2, "dbcode_inverter": 3, "mac": 4}
-# Defaults for structure messages whose layout was verified against Samsung S-NET Pro 2
+# Defaults for structure messages whose layout was verified against a service tool
 STRUCTURE_FORMAT_DEFAULTS = {
     0x0600: "product_option",  # Product option: [0]12300-[1]10000-[2]00000-[3]00002
     0x0608: "dbcode",          # Main micom: DB91-02103B 231108

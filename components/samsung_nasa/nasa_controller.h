@@ -19,6 +19,8 @@ class NASA_Controller : public PollingComponent {
   void update() override;
   void write(const std::string &address, const uint16_t &number, long value);
   void read(const std::vector<uint16_t> &numbers);
+  // type: NASA data type (1 = Read, 2 = Write), as sent by the service tool for this message
+  void send_structure(const std::string &address, uint16_t number, uint8_t type, const std::vector<uint8_t> &payload);
   void register_device(NASA_Device *device);
   void register_component(NASA_Base *component);
   void set_debug_log_messages(bool value) { debug_log_messages = value; }
