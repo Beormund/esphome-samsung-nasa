@@ -297,7 +297,7 @@ text_sensor:
 
 Messages of NASA type *structure* (e.g. `0x0600`, `0x0608`, `0x060C`) carry a block of bytes instead of a number. A text
 sensor shows them as text if the content is printable, otherwise as hex. Known layouts are formatted automatically
-(verified against Samsung S-NET Pro 2) and can be selected with `structure_format` (`hex`, `dbcode`, `dbcode_inverter`, `product_option`). Further verified structures:
+(verified against a service tool) and can be selected with `structure_format` (`hex`, `dbcode`, `dbcode_inverter`, `product_option`). Further verified structures:
 `0x061A` product model name and `0x0605` location (text), `0x0607` serial number (text), `0x8601` inverter micom
 (`dbcode_inverter`, e.g. `DB91-02411A 100004`):
 
@@ -554,6 +554,69 @@ api:
 
 
 WARNING: Use this action with caution and only if you know what you are doing!
+
+### Reading error data: send_structure (0x461E, 0x860B)
+
+Some diagnostic data is only sent by the outdoor/indoor unit when a service tool asks for it with a *structure* message carrying a fixed payload. `send_structure(address, message, data_type, payload)` on the controller sends exactly one such message to one device. It is meant for lambdas; there is no YAML action for it. The examples assume `nasa_controller_id: nasa_controller` under `samsung_nasa:`.
+
+The two requests below were recorded from a service tool on an AE140BXYDGG and replayed byte for byte. The ESP uses the same source address as the service tool (80.ff.00), so do not run both at the same time.
+
+```yaml
+button:
+  # Error history of the indoor unit (STR_IN_ERROR_HISTORY_FOR_HASS). NASA Read, answer: 46 bytes.
+  # Never send 0x40D6 (ENUM_IN_ERROR_HISTORY_CLEAR_FOR_HASS), it clears the history.
+  - platform: template
+    name: Read error history 0x461E
+    entity_category: diagnostic
+    on_press:
+      - lambda: id(nasa_controller).send_structure("20.00.00", 0x461E, 1, {0, 0, 0, 0, 0});
+  # Cycle data before the last error of the outdoor unit.
+  # The service tool sends this as data type 2 (Write) with payload 00 01 00 00 00 00; it only starts the dump.
+  # Do not press it repeatedly: the dump is about 390 packets and occupies the bus for ~40 s.
+  - platform: template
+    name: Read cycle data before error 0x860B
+    entity_category: diagnostic
+    on_press:
+      - lambda: id(nasa_controller).send_structure("10.00.00", 0x860B, 2, {0x00, 0x01, 0x00, 0x00, 0x00, 0x00});
+```
+
+WARNING: `send_structure` sends whatever you give it. Only replay messages you have recorded from a service tool.
+
+#### 0x860B layout
+
+The outdoor unit answers with 30 records, one per minute, covering the 30 minutes up to the error; the last record is the error itself. Each record is 13 notification packets with one 0x860B structure each. Structure payload: `00 01`, record number (0–29), `1D` (= last record number), packet number (0–12), then the data bytes listed below (byte 0 is always `0C`). The dump was still present after the error had been reset. Only packets 0, 1 and 4 carried data on a single-compressor monobloc.
+
+Fields checked against the labelled export of the same E438 dump from the service tool (outdoor unit 1 / indoor unit 1). *Compared* means 30 of 30 values identical; *read off* means checked against a text or constant column only.
+
+| Packet | Byte | Length | Field | Scale | Check |
+|---|---|---|---|---|---|
+| 0 | 1 | 2 (LE) | Time, seconds since first record | 1 | compared |
+| 0 | 3 | 1 | O/U Total Capacity | 1 | read off |
+| 0 | 5 | 2 (LE) | Error Code | 1 | compared |
+| 0 | 7 | 1 | error unit | 1 | compared |
+| 0 | 8 | 1 | Cool/Heat (2 = Heat) | – | read off |
+| 0 | 9 | 1 | Operation Mode (2 = Normal, 7 = Prohibit) | – | read off |
+| 0 | 10 | 1 | Capacity | 1 | compared |
+| 0 | 11 | 1 | HP | 1 | compared |
+| 0 | 12 | 1 | Total Comp | 1 | read off |
+| 0 | 13 | 1 | Outdoor Fan Step | ×10 | compared |
+| 0 | 14 / 15 / 16 | 1 each | Target / Order / Current Frequency1 (Hz) | 1 | compared |
+| 0 | 23 | 1 | High Pressure | ÷10 | compared |
+| 0 | 25 | 1 | Low Pressure | ÷10 | compared |
+| 0 | 27 | 1 | Discharge1 (°C) | 1 | compared |
+| 0 | 30 | 1 | Comp Top1 (°C) | 1 | compared |
+| 0 | 33 | 1 | Compressor Current1 (A) | 1 | compared |
+| 0 | 36 | 1 | IPM1 (°C) | 1 | compared |
+| 0 | 39 | 1 | Outdoor Temp. (°C) | 1 | compared |
+| 0 | 40 | 1 | CondOut Temp. (°C) | 1 | compared |
+| 1 | 2 | 1 | Suction1 Temp. (°C) | 1 | compared |
+| 1 | 3 / 4 | 1 each | EVI IN / EVI OUT (°C) | 1 | compared |
+| 1 | 5 | 1 | Main EEV1 (steps) | ×10 | compared |
+| 1 | 6 / 7 | 1 each | EVI EEV / EVI SOL EEV | ×10? | only 0 seen |
+| 1 | 9 | 1 | bit 1 = Comp1 on | – | read off |
+| 4 | 25–28 | 1 each | Indoor: Set Temperature, Eva In1, Tw1, Tw2 (°C) | 1 | read off |
+
+Bytes not listed were 0 or constant; the second compressor and the unused unit blocks of the export are not part of this table. 0x461E returned 46 zero bytes in every read so far (also after errors), so its layout is unknown.
 
 ## Climate Component
 

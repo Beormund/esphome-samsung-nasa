@@ -52,6 +52,11 @@ void NASA_Controller::register_component(NASA_Base *component) {
 
 void NASA_Controller::read(const std::vector<uint16_t> &numbers) { this->nasa_client_->publish_read(numbers); }
 
+void NASA_Controller::send_structure(const std::string &address, uint16_t number, uint8_t type,
+                                    const std::vector<uint8_t> &payload) {
+  this->nasa_client_->publish_structure(address, number, (DataType) type, payload);
+}
+
 void NASA_Controller::write(const std::string &address, const uint16_t &number, long value) {
   this->nasa_client_->publish_request(address, number, value);
 }

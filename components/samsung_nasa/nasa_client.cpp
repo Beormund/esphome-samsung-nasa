@@ -1,6 +1,7 @@
 #include "esphome/core/log.h"
 #include "esphome/core/helpers.h"
 #include "nasa_client.h"
+#include <algorithm>
 
 namespace esphome {
 namespace samsung_nasa {
@@ -240,6 +241,19 @@ void NASA_Client::publish_from_queue(std::vector<uint16_t> &messages) {
   if (packet.messages.size() == 0)
     return;
   packet.log_multiline(std::string("Read"), log_lines_func);
+  this->publish_data(packet.command.packetNumber, packet.encode());
+}
+
+void NASA_Client::publish_structure(const std::string &address, uint16_t message, DataType type,
+                                    const std::vector<uint8_t> &payload) {
+  if (payload.size() > sizeof(Buffer::data))
+    return;
+  Packet packet = Packet::create_partial(Address::parse(address), type);
+  MessageSet request(message);
+  request.structure.size = payload.size();
+  std::copy(payload.begin(), payload.end(), request.structure.data);
+  packet.messages.push_back(request);
+  packet.log_multiline(std::string("Structure"), log_lines_func);
   this->publish_data(packet.command.packetNumber, packet.encode());
 }
 
