@@ -39,6 +39,7 @@ MODEL_REGISTRY = {}
 NASA_Controller = samsung_nasa_ns.class_("NASA_Controller", cg.PollingComponent)
 NASA_Request_Read_Action = samsung_nasa_ns.class_("NASA_Request_Read_Action")
 NASA_Request_Write_Action = samsung_nasa_ns.class_("NASA_Request_Write_Action")
+NASA_Send_Structure_Action = samsung_nasa_ns.class_("NASA_Send_Structure_Action")
 NASA_Client = samsung_nasa_ns.class_("NASA_Client", cg.PollingComponent, uart.UARTDevice)
 NASA_Device = samsung_nasa_ns.class_("NASA_Device")
 NASA_CONTROLLER_ID = "nasa_controller_id"
@@ -178,6 +179,30 @@ async def request_write_to_code(config, action_id, template_arg, args):
         template_val = await cg.templatable(write_conf["value"], args, res_type)
         cg.add(var.add_write(comp, template_val))
             
+    return var
+
+STRUCTURE_DATA_TYPES = {"read": 1, "write": 2}
+
+@automation.register_action(
+    "samsung_nasa.send_structure",
+    NASA_Send_Structure_Action,
+    cv.Schema({
+        cv.GenerateID(NASA_CONTROLLER_ID): cv.use_id(NASA_Controller),
+        cv.Required(NASA_DEVICE_ID): cv.use_id(NASA_Device),
+        cv.Required("message"): cv.hex_uint16_t,
+        cv.Optional("data_type", default="read"): cv.one_of(*STRUCTURE_DATA_TYPES, lower=True),
+        cv.Optional("payload", default=[]): cv.All(cv.ensure_list(cv.hex_uint8_t), cv.Length(max=255)),
+    }),
+    synchronous=False
+)
+async def send_structure_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[NASA_CONTROLLER_ID])
+    device = await cg.get_variable(config[NASA_DEVICE_ID])
+    var = cg.new_Pvariable(action_id, template_arg, parent)
+    cg.add(var.set_address(device.get_address()))
+    cg.add(var.set_message(config["message"]))
+    cg.add(var.set_data_type(STRUCTURE_DATA_TYPES[config["data_type"]]))
+    cg.add(var.set_payload(config["payload"]))
     return var
 
 async def to_code(config):
