@@ -112,5 +112,30 @@ template<typename... Ts> class NASA_Request_Write_Action : public Action<Ts...> 
   std::vector<std::function<void(const Ts &...)>> actions_;
 };
 
+template<typename... Ts> class NASA_Send_Structure_Action : public Action<Ts...> {
+ public:
+  explicit NASA_Send_Structure_Action(NASA_Controller *controller) : controller_(controller) {}
+
+  void set_address(const std::string &address) { this->address_ = address; }
+  void set_message(uint16_t message) { this->message_ = message; }
+  void set_data_type(uint8_t data_type) { this->data_type_ = data_type; }
+  void set_payload(const std::vector<uint8_t> &payload) { this->payload_ = payload; }
+
+  void play(const Ts &...x) override {
+    if (debug_log_messages) {
+      ESP_LOGI(TAG, "Send Structure Action: 0x%X to %s (%u bytes)", this->message_, this->address_.c_str(),
+               (unsigned) this->payload_.size());
+    }
+    this->controller_->send_structure(this->address_, this->message_, this->data_type_, this->payload_);
+  }
+
+ protected:
+  NASA_Controller *controller_;
+  std::string address_;
+  uint16_t message_{0};
+  uint8_t data_type_{1};
+  std::vector<uint8_t> payload_;
+};
+
 }  // namespace samsung_nasa
 }  // namespace esphome
