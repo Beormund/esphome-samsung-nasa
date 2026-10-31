@@ -589,9 +589,14 @@ api:
 
 WARNING: Use this action with caution and only if you know what you are doing!
 
-### Reading error data: send_structure (0x461E, 0x860B)
+### Action: samsung_nasa.send_structure
 
-Some diagnostic data is only sent by the outdoor/indoor unit when a service tool asks for it with a *structure* message carrying a fixed payload. `send_structure(address, message, data_type, payload)` on the controller sends exactly one such message to one device. It is meant for lambdas; there is no YAML action for it. The examples assume `nasa_controller_id: nasa_controller` under `samsung_nasa:`.
+Some diagnostic data is only sent by the outdoor/indoor unit when a service tool asks for it with a *structure* message carrying a fixed payload. The samsung_nasa.send_structure action sends exactly one such message to one device:
+
+- `nasa_device_id` (required): the device to send to.
+- `message` (required): the NASA message number, e.g. `0x461E`.
+- `data_type` (optional, default `read`): `read` or `write`, as sent by the service tool for this message.
+- `payload` (optional, default empty): list of bytes, at most 255.
 
 The two requests below were recorded from a service tool on an AE140BXYDGG and replayed byte for byte. The ESP uses the same source address as the service tool (80.ff.00), so do not run both at the same time.
 
@@ -603,16 +608,26 @@ button:
     name: Read error history 0x461E
     entity_category: diagnostic
     on_press:
-      - lambda: id(nasa_controller).send_structure("20.00.00", 0x461E, 1, {0, 0, 0, 0, 0});
+      - samsung_nasa.send_structure:
+          nasa_device_id: nasa_device_1   # indoor unit 20.00.00
+          message: 0x461E
+          data_type: read
+          payload: [0x00, 0x00, 0x00, 0x00, 0x00]
   # Cycle data before the last error of the outdoor unit.
-  # The service tool sends this as data type 2 (Write) with payload 00 01 00 00 00 00; it only starts the dump.
+  # The service tool sends this as data type Write with payload 00 01 00 00 00 00; it only starts the dump.
   # Do not press it repeatedly: the dump is about 390 packets and occupies the bus for ~40 s.
   - platform: template
     name: Read cycle data before error 0x860B
     entity_category: diagnostic
     on_press:
-      - lambda: id(nasa_controller).send_structure("10.00.00", 0x860B, 2, {0x00, 0x01, 0x00, 0x00, 0x00, 0x00});
+      - samsung_nasa.send_structure:
+          nasa_device_id: nasa_device_2   # outdoor unit 10.00.00
+          message: 0x860B
+          data_type: write
+          payload: [0x00, 0x01, 0x00, 0x00, 0x00, 0x00]
 ```
+
+The same is available from lambdas as `id(nasa_controller).send_structure("20.00.00", 0x461E, 1, {0, 0, 0, 0, 0});` (data type 1 = Read, 2 = Write).
 
 WARNING: `send_structure` sends whatever you give it. Only replay messages you have recorded from a service tool.
 
