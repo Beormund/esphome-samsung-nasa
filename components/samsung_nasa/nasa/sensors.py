@@ -165,6 +165,31 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: temp_sensor_defaults()
     },
+    # Capacity request/absolute: kW = raw / 8.6 (EHS Mono 14 kW: 120 -> 13.95 kW); 32767 = not available
+    0x4211: {
+        NASA_LABEL: "VAR_IN_CAPACITY_REQUEST",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_KILOWATT,
+            icon=ICON_FLASH,
+            accuracy_decimals=2,
+            state_class=STATE_CLASS_MEASUREMENT,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            filters=[{CONF_LAMBDA: Lambda("return x >= 32767 ? NAN : x / 8.6f;")}]
+        )
+    },
+    0x4212: {
+        NASA_LABEL: "VAR_IN_CAPACITY_ABSOLUTE",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_KILOWATT,
+            icon=ICON_FLASH,
+            accuracy_decimals=2,
+            state_class=STATE_CLASS_MEASUREMENT,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+            filters=[{CONF_LAMBDA: Lambda("return x >= 32767 ? NAN : x / 8.6f;")}]
+        )
+    },
     0x4236: {
         NASA_LABEL: "VAR_IN_TEMP_WATER_IN_F",
         NASA_MODE: CONTROLLER_MODE_STATUS,
@@ -180,6 +205,12 @@ sensors = {
         NASA_MODE: CONTROLLER_MODE_STATUS,
         CONF_DEFAULTS: temp_sensor_defaults()
     },   
+    # Water outlet after the backup heater (TW3 on EHS Mono)
+    0x4239: {
+        NASA_LABEL: "VAR_IN_TEMP_WATER_OUT2_F",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: temp_sensor_defaults()
+    },
     0x427F: {
         NASA_LABEL: "VAR_IN_TEMP_WATER_LAW_F",
         NASA_MODE: CONTROLLER_MODE_STATUS,
@@ -442,6 +473,26 @@ sensors = {
             icon=ICON_FLASH,
             accuracy_decimals=1,
             state_class=STATE_CLASS_MEASUREMENT,
+            filters=[{CONF_MULTIPLY: 0.1}]
+        )
+    },
+    0x8287: {
+        NASA_LABEL: "VAR_OUT_INSTALL_CAPA",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement="HP",
+            icon=ICON_FLASH,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC
+        )
+    },
+    0x82E3: {
+        NASA_LABEL: "VAR_OUT_PRODUCT_OPTION_CAPA",
+        NASA_MODE: CONTROLLER_MODE_STATUS,
+        CONF_DEFAULTS: sensor_defaults(
+            unit_of_measurement=UNIT_KILOWATT,
+            icon=ICON_FLASH,
+            accuracy_decimals=1,
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
             filters=[{CONF_MULTIPLY: 0.1}]
         )
     },

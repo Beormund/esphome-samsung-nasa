@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "nasa_client_packet.h"
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
@@ -21,30 +22,53 @@ int Packet::packet_counter_ = 0;
 int Packet::get_packet_number() { return ++packet_counter_; }
 
 DecodeResult Packet::decode(std::vector<uint8_t> &data) {
-  const uint16_t size = (uint16_t) data[1] << 8 | (uint16_t) data[2];
   if (data.size() < 4) {
     return {DecodeResultType::Fill};
   }
+  // read the length only after the buffer check above (data[1..2] may not exist yet)
+  const uint16_t size = (uint16_t) data[1] << 8 | (uint16_t) data[2];
+  // shortest valid packet: size(2) + addresses(3+3) + command(3) + capacity(1) + crc(2) + end(1) = 14;
+  // anything shorter would make the crc range negative and the header reads go past the packet
+  if (size < 14) {
+    diag_rx_seq++;
+    diag_err_size++;
+    ESP_LOGW(TAG, "Packet too short: size %u (n=%u)", (unsigned) size, (unsigned) diag_rx_seq);
+    if (debug_log_raw_bytes)
+      diag_log_raw("size", data.data(), data.size());
+    return {DecodeResultType::Discard};
+  }
   if (size > 1500) {
-    char hex_buf_33[512];
-    ESP_LOGW(TAG, "Packet exceeds size limits: %s", format_hex_to(hex_buf_33, data));
+    diag_rx_seq++;
+    diag_err_size++;
+    ESP_LOGW(TAG, "Packet exceeds size limits (n=%u, %u bytes in buffer)", (unsigned) diag_rx_seq, (unsigned) data.size());
+    if (debug_log_raw_bytes)
+      diag_log_raw("size", data.data(), data.size());
     return {DecodeResultType::Discard};
   }
   if (size + 2 > data.size())
     return {DecodeResultType::Fill};
   if (data[size + 1] != 0x34) {
-    char hex_buf_39[512];
-    ESP_LOGW(TAG, "invalid end byte: %s", format_hex_to(hex_buf_39, data));
+    diag_rx_seq++;
+    diag_err_end++;
+    ESP_LOGW(TAG, "invalid end byte (n=%u, length %u, %u bytes in buffer)", (unsigned) diag_rx_seq, (unsigned) (size + 2), (unsigned) data.size());
+    if (debug_log_raw_bytes)
+      diag_log_raw("end", data.data(), std::min<size_t>(data.size(), size + 2));
     return {DecodeResultType::Discard};
   }
   uint16_t crc_actual = crc16be(data.data() + 3, size - 4);
   uint16_t crc_expected = (int) data[size - 1] << 8 | (int) data[size];
   if (crc_expected != crc_actual) {
-    char hex_buf_46[512];
-    ESP_LOGW(TAG, "NASA: invalid crc - got %d but should be %d: %s", crc_actual, crc_expected,
-             format_hex_to(hex_buf_46, data));
+    diag_rx_seq++;
+    diag_err_crc++;
+    ESP_LOGW(TAG, "NASA: invalid crc - got %d but should be %d (n=%u)", crc_actual, crc_expected, (unsigned) diag_rx_seq);
+    if (debug_log_raw_bytes)
+      diag_log_raw("crc", data.data(), size + 2);
     return {DecodeResultType::Discard};
   }
+  diag_rx_seq++;
+  diag_ok++;
+  if (debug_log_raw_bytes)
+    diag_log_raw("ok", data.data(), size + 2);
   unsigned int cursor = 3;
   sa.decode(data, cursor);
   cursor += sa.size;
@@ -88,7 +112,7 @@ std::vector<uint8_t> Packet::encode() {
 std::vector<std::string> Packet::to_string(optional<std::string> prefix) {
   std::vector<std::string> lines;
   std::string line = prefix ? *prefix + " " : "";
-  line += "#Packet Src:" + sa.to_string() + " Dst:" + da.to_string() + " " + command.to_string();
+  line += "#Packet Src:" + sa.to_string() + " Dst:" + da.to_string() + " " + command.to_string() + " n=" + std::to_string(diag_rx_seq);
   lines.push_back(line);
   for (int i = 0; i < messages.size(); i++) {
     lines.push_back(" > " + messages[i].to_string());
@@ -97,6 +121,10 @@ std::vector<std::string> Packet::to_string(optional<std::string> prefix) {
 }
 
 void Packet::log_multiline(optional<std::string> prefix, log_lines_t func) {
+  // packet dumps (Read, Write, Request, Response, Ack, Nack) are debug output; without
+  // debug_log_messages every poll and every external write would end up as a warning
+  if (!debug_log_messages)
+    return;
   for (const auto &line : this->to_string(prefix)) {
     func(TAG, line.c_str());
   }

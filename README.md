@@ -80,6 +80,20 @@ samsung_nasa:
 
 The nasa_client configuration options are to do with ensuring NASA message delivery via a retry mechansim. Thanks and acknowledgment go to atanasenko for the [retry mechanism.](https://github.com/omerfaruk-aran/esphome_samsung_hvac_bus/commit/1030af3bcc4f3dc688be643e0c2ae65b6401fcc5)
 
+### Debug output
+
+- `debug_log_messages`: every received value as `Src:… Dst:… 0x4238 = 326 n=1234`, plus the packets of non-notification types.
+- `debug_log_undefined_messages`: values the component has no definition for, also with `n=`.
+- `debug_log_messages_raw`: the unmodified bytes of every packet (valid and rejected), split into parts of at most 160 bytes so no line is cut off by syslog or the API log:
+  `RAW s=2C81A9D1 n=1234 ok len=64 p=1/1 3200402000FF…34`
+
+`n` is a receive number that counts every packet since boot, including rejected ones. It links each value line to its packet and its RAW line, and a gap in `n` shows a lost or rejected packet. `s` is a random session id per boot.
+
+While any of the three options is on, a statistics line is logged once a minute (counters since boot):
+`STATS s=2C81A9D1 n=666264 ok=665340 size=66 end=584 crc=274 uart=0`
+(`ok` = valid packets, `size` = length out of range, `end` = wrong end byte, `crc` = checksum error, `uart` = UART read errors).
+Warnings for rejected packets name the reason and `n`; their bytes are in the RAW lines when `debug_log_messages_raw` is on.
+
  - **silence_interval**: (Optional) The time to wait since the last wire activity before sending. 
  - **retry_interval**: (Optional) The minimum time before a retry attempt.  
  - **min_retries**: (Optional) The minimum number of retries, even beyond timeout. 
@@ -195,7 +209,7 @@ So for example message 0x4066 (hot water mode):
 
 Refer to p.24 onwards of the [MIM-E03EN user manual PDF](MIM-E03EN.pdf).
 
-2041, 2081, 2091, 2092, 2093, 3011, 3042, 3061, 3071, 4011, 4021, 4022, 4041, 4051, 4052, 4053
+2041, 2081, 2091, 2092, 2093, 3011, 3042, 3061, 3071, 4011, 4021, 4022, 4041, 4051, 5042, 5043
 
 
 
@@ -316,6 +330,26 @@ text_sensor:
     nasa_device_id: samsung_outdoor
     name: "Outdoor model information"
     structure_format: hex         # e.g. "08 08 00 12 33"
+```
+
+### Large numeric values
+
+Sensor components publish a 32-bit float, which holds integers exactly only up to 2^24 (16,777,216). Larger values
+lose their lowest bits: e.g. `0x8404` = 75530754 (`0x04808202`) arrives in Home Assistant as 75530752 (`0x04808200`),
+so a change of bit 1 is not visible at all. Energy counters such as `0x8414` or `0x4427` are affected too once they
+exceed 2^24. For an exact value use a text sensor (without mapping); `numeric_format: hex` shows the bit pattern:
+
+```yaml
+text_sensor:
+  - platform: samsung_nasa
+    message: 0x8404
+    nasa_device_id: samsung_outdoor
+    name: "Outdoor 0x8404 exact"   # e.g. "75530754"
+  - platform: samsung_nasa
+    message: 0x8404
+    nasa_device_id: samsung_outdoor
+    name: "Outdoor 0x8404 hex"
+    numeric_format: hex            # e.g. "0x04808202"
 ```
 
 ## Sensor   

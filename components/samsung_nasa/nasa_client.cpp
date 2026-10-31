@@ -16,6 +16,7 @@ bool defaultReceiveCallback(std::string source_address, MessageSet &message) { r
 log_lines_t log_lines_func = [](const char *tag, const char *line) { ESP_LOGW(tag, line); };
 
 void NASA_Client::setup() {
+  diag_session = random_uint32();
   if (debug_log_messages) {
     ESP_LOGW(TAG, "NASA Client Setup");
   }
@@ -28,6 +29,13 @@ void NASA_Client::setup() {
 }
 
 void NASA_Client::update() {
+  // one statistics line per minute while any debug option is enabled (counters since boot)
+  static uint32_t last_stats = 0;
+  if ((debug_log_messages || debug_log_undefined_messages || debug_log_raw_bytes) && millis() - last_stats > 60000) {
+    last_stats = millis();
+    ESP_LOGW(TAG, "STATS s=%08X n=%u ok=%u size=%u end=%u crc=%u uart=%u", (unsigned) diag_session, (unsigned) diag_rx_seq,
+             (unsigned) diag_ok, (unsigned) diag_err_size, (unsigned) diag_err_end, (unsigned) diag_err_crc, (unsigned) diag_err_uart);
+  }
   // Waiting for first update before beginning processing data
   if (this->data_processing_init) {
     ESP_LOGCONFIG(TAG, "Data processing starting");
@@ -73,6 +81,7 @@ bool NASA_Client::read_data() {
     } else {
       // If available() is true but read_byte fails (e.g., framing error),
       // break immediately so we don't get stuck in an infinite loop.
+      diag_err_uart++;
       ESP_LOGW(TAG, "Failed to read byte from UART; flushing to prevent loop.");
       this->flush(); //  Clears the corrupted UART buffer
       break;
@@ -217,12 +226,13 @@ void NASA_Client::process_messageset(std::string source, std::string dest, Messa
   // Invoike the message received callback
   auto result = this->receiveFunc_(source, message);
   if (debug_log_messages && result && message.type == Structure) {
-    // structures have no numeric value
-    ESP_LOGW(TAG, "Src:%s Dst:%s %s", source.c_str(), dest.c_str(), message.to_string().c_str());
+    // structures have no numeric value; their bytes are in the RAW lines
+    ESP_LOGW(TAG, "Src:%s Dst:%s %s n=%u", source.c_str(), dest.c_str(), message.to_string().c_str(), (unsigned) diag_rx_seq);
   } else if (debug_log_messages && result) {
-    ESP_LOGW(TAG, "Src:%s Dst:%s 0x%X = %ld", source.c_str(), dest.c_str(), message.messageNumber, message.value);
+    ESP_LOGW(TAG, "Src:%s Dst:%s 0x%X = %ld n=%u", source.c_str(), dest.c_str(), message.messageNumber, message.value,
+             (unsigned) diag_rx_seq);
   } else if (debug_log_undefined_messages && !result) {
-    ESP_LOGW(TAG, "Undefined s:%s d:%s %s", source.c_str(), dest.c_str(), message.to_string().c_str());
+    ESP_LOGW(TAG, "Undefined s:%s d:%s %s n=%u", source.c_str(), dest.c_str(), message.to_string().c_str(), (unsigned) diag_rx_seq);
   }
 }
 
