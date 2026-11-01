@@ -123,7 +123,8 @@ nasa_item_base_schema = cv.Schema(
     NASA_Request_Read_Action,
     cv.Schema({
         cv.GenerateID(NASA_CONTROLLER_ID): cv.use_id(NASA_Controller),
-        cv.Required(CONF_ID): cv.ensure_list(cv.use_id(NASA_Base))
+        cv.Required(CONF_ID): cv.ensure_list(cv.use_id(NASA_Base)),
+        cv.Optional("addressed", default=False): cv.boolean,
     }),
     synchronous=False
 )
@@ -135,6 +136,8 @@ async def request_read_to_code(config, action_id, template_arg, args):
         comps.append(comp)
     var = cg.new_Pvariable(action_id, template_arg, parent)
     cg.add(var.request_read(comps))
+    if config["addressed"]:
+        cg.add(var.set_addressed(True))
     return var
 
 @automation.register_action(

@@ -311,7 +311,7 @@ text_sensor:
 
 Messages of NASA type *structure* (e.g. `0x0600`, `0x0608`, `0x060C`) carry a block of bytes instead of a number. A text
 sensor shows them as text if the content is printable, otherwise as hex. Known layouts are formatted automatically
-(verified against a service tool) and can be selected with `structure_format` (`hex`, `dbcode`, `dbcode_inverter`, `product_option`). Further verified structures:
+(verified on an EHS Mono) and can be selected with `structure_format` (`hex`, `dbcode`, `dbcode_inverter`, `product_option`). Further verified structures:
 `0x061A` product model name and `0x0605` location (text), `0x0607` serial number (text), `0x8601` inverter micom
 (`dbcode_inverter`, e.g. `DB91-02411A 100004`):
 
@@ -509,6 +509,14 @@ interval:
 
 In the above automation FSV values are read 30 seconds after startup and then every 30 minutes (or for example once a day).
 
+By default the read request is broadcast. With `addressed: true` the request is sent directly to the device each component belongs to (one request per device). The default broadcast behaviour is unchanged.
+
+```yaml
+      - samsung_nasa.request_read:
+          id: [fsv_2011, fsv_2012]
+          addressed: true
+```
+
 Alternatively you can implement a configuration button component that when pressed will perform a read request:
 
 ```yaml
@@ -589,16 +597,24 @@ api:
 
 WARNING: Use this action with caution and only if you know what you are doing!
 
+For lambdas, `write()` always sends a NASA *Request*. `write_as(address, message, value, data_type)` sends a single value with an explicit data type instead (2 = Write, 3 = Request), for cases where a Write is needed instead of a Request:
+
+```yaml
+      - lambda: id(nasa_controller).write_as("10.00.00", 0x8065, 2, 2);  // example only, see below
+```
+
+Example use case: on an AE140BXYDGG it is intended to send 0x8065 = 2 as a Write to clear an E438 error. This is a single installation's use case and not yet confirmed there, not a general reset function; do not send writes to the outdoor unit unless you know what they do.
+
 ### Action: samsung_nasa.send_structure
 
-Some diagnostic data is only sent by the outdoor/indoor unit when a service tool asks for it with a *structure* message carrying a fixed payload. The samsung_nasa.send_structure action sends exactly one such message to one device:
+Some diagnostic data is only sent by the outdoor/indoor unit when it is asked with a *structure* message carrying a fixed payload. The samsung_nasa.send_structure action sends exactly one such message to one device:
 
 - `nasa_device_id` (required): the device to send to.
 - `message` (required): the NASA message number, e.g. `0x461E`.
-- `data_type` (optional, default `read`): `read` or `write`, as sent by the service tool for this message.
+- `data_type` (optional, default `read`): `read` or `write`, as observed on the bus for this message.
 - `payload` (optional, default empty): list of bytes, at most 255.
 
-The two requests below were recorded from a service tool on an AE140BXYDGG and replayed byte for byte. The ESP uses the same source address as the service tool (80.ff.00), so do not run both at the same time.
+The two requests below were captured on the bus of an AE140BXYDGG and replayed byte for byte. The ESP sends from 80.ff.00, an address other diagnostic equipment may use too, so do not run both at the same time.
 
 ```yaml
 button:
@@ -614,7 +630,7 @@ button:
           data_type: read
           payload: [0x00, 0x00, 0x00, 0x00, 0x00]
   # Cycle data before the last error of the outdoor unit.
-  # The service tool sends this as data type Write with payload 00 01 00 00 00 00; it only starts the dump.
+  # Sent as data type Write with payload 00 01 00 00 00 00; it only starts the dump.
   # Do not press it repeatedly: the dump is about 390 packets and occupies the bus for ~40 s.
   - platform: template
     name: Read cycle data before error 0x860B
@@ -629,13 +645,13 @@ button:
 
 The same is available from lambdas as `id(nasa_controller).send_structure("20.00.00", 0x461E, 1, {0, 0, 0, 0, 0});` (data type 1 = Read, 2 = Write).
 
-WARNING: `send_structure` sends whatever you give it. Only replay messages you have recorded from a service tool.
+WARNING: `send_structure` sends whatever you give it. Only replay messages you have captured on your own bus.
 
 #### 0x860B layout
 
 The outdoor unit answers with 30 records, one per minute, covering the 30 minutes up to the error; the last record is the error itself. Each record is 13 notification packets with one 0x860B structure each. Structure payload: `00 01`, record number (0–29), `1D` (= last record number), packet number (0–12), then the data bytes listed below (byte 0 is always `0C`). The dump was still present after the error had been reset. Only packets 0, 1 and 4 carried data on a single-compressor monobloc.
 
-Fields checked against the labelled export of the same E438 dump from the service tool (outdoor unit 1 / indoor unit 1). *Compared* means 30 of 30 values identical; *read off* means checked against a text or constant column only.
+Fields checked against labelled reference values for the same E438 dump (outdoor unit 1 / indoor unit 1). *Compared* means 30 of 30 values identical; *read off* means checked against a text or constant column only.
 
 | Packet | Byte | Length | Field | Scale | Check |
 |---|---|---|---|---|---|
@@ -666,6 +682,46 @@ Fields checked against the labelled export of the same E438 dump from the servic
 | 4 | 25–28 | 1 each | Indoor: Set Temperature, Eva In1, Tw1, Tw2 (°C) | 1 | read off |
 
 Bytes not listed were 0 or constant; the second compressor and the unused unit blocks of the export are not part of this table. 0x461E returned 46 zero bytes in every read so far (also after errors), so its layout is unknown.
+
+#### 0x860B request modes
+
+Byte 1 of the 0x860B request payload (`00 <mode> 00 00 00 00`, data type `write`, sent to the outdoor unit) selects which record the outdoor unit sends. All answers use the same framing: byte 1 echoes the mode, bytes 2/3 are the record (or first slot) / last one, bytes 4/5 the packet / last packet, data from byte 6.
+
+| Mode | Content | Answer | Tested on our unit |
+|---|---|---|---|
+| 1 | Cycle data before the last error (layout above) | 30 records × 13 packets | yes, data |
+| 2 | Test run cycle data | 60 records × 13 packets | yes, empty (no test run stored) |
+| 3 | Error code history | 16 packets, 200 entries | yes, data (see below) |
+| 4 | Key input data | 5 packets, 200 bytes | yes, empty (all `FF`) |
+| 5 | Appears to reset a counter | – | **not tested, do not send** |
+| 6 | Refrigerant cycle data | 6 records × 13 packets | yes, empty (all `FF`) |
+
+The stored data survives an error reset and power cuts. Communication errors (E201/E202) did not replace the cycle data of the last E438 on our unit.
+
+#### Error code history (0x860B mode 3)
+
+```yaml
+button:
+  - platform: template
+    name: Read outdoor error code history 0x860B
+    entity_category: diagnostic
+    on_press:
+      - samsung_nasa.send_structure:
+          nasa_device_id: nasa_device_2   # outdoor unit 10.00.00
+          message: 0x860B
+          data_type: write
+          payload: [0x00, 0x03, 0x00, 0x00, 0x00, 0x00]
+```
+
+The outdoor unit answers with 16 notification packets. Structure payload: `00 03`, first slot of this packet (`00`, `0D`, `1A`, … in steps of 13), `C7` (= last slot 199), `00 00`, then up to 13 entries of 3 bytes:
+
+| Byte | Content |
+|---|---|
+| 0 | error unit: `C8` (200) = outdoor unit, `00` = indoor/hydro unit codes |
+| 1 | error code, low byte |
+| 2 | error code, high byte (E438 = `B6 01`) |
+
+`FF FF FF` marks an empty slot. The buffer holds 200 entries, oldest first, without timestamps; new entries are appended at the end. On our unit 149 of 200 slots were used and the most recent entries matched the known sequence of E438/E466 errors of the last weeks in order. The error unit value 200 matches the "error unit" column of the cycle data (packet 0, byte 7).
 
 ## Climate Component
 
