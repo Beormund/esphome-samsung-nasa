@@ -509,6 +509,14 @@ interval:
 
 In the above automation FSV values are read 30 seconds after startup and then every 30 minutes (or for example once a day).
 
+By default the read request is broadcast. With `addressed: true` the request is sent directly to the device each component belongs to (one request per device). The default broadcast behaviour is unchanged.
+
+```yaml
+      - samsung_nasa.request_read:
+          id: [fsv_2011, fsv_2012]
+          addressed: true
+```
+
 Alternatively you can implement a configuration button component that when pressed will perform a read request:
 
 ```yaml
@@ -588,6 +596,14 @@ api:
 
 
 WARNING: Use this action with caution and only if you know what you are doing!
+
+For lambdas, `write()` always sends a NASA *Request*. `write_as(address, message, value, data_type)` sends a single value with an explicit data type instead (2 = Write, 3 = Request), for cases where a Write is needed instead of a Request:
+
+```yaml
+      - lambda: id(nasa_controller).write_as("10.00.00", 0x8065, 2, 2);  // example only, see below
+```
+
+Example use case: on an AE140BXYDGG it is intended to send 0x8065 = 2 as a Write to clear an E438 error. This is a single installation's use case and not yet confirmed there, not a general reset function; do not send writes to the outdoor unit unless you know what they do.
 
 ### Action: samsung_nasa.send_structure
 

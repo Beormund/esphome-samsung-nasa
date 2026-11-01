@@ -20,6 +20,8 @@
 #include <functional>
 #include <algorithm>
 #include <initializer_list>
+#include <map>
+#include <string>
 
 namespace esphome {
 namespace samsung_nasa {
@@ -29,6 +31,8 @@ template<typename... Ts> class NASA_Request_Read_Action : public Action<Ts...> {
   explicit NASA_Request_Read_Action(NASA_Controller *controller) : controller_(controller) {}
 
   void request_read(std::vector<NASA_Base *> components) { this->components_ = components; }
+  // true: send the read to each component's device address instead of broadcasting it
+  void set_addressed(bool addressed) { this->addressed_ = addressed; }
 
   void play(Ts... x) override {
     if (debug_log_messages) {
@@ -41,11 +45,20 @@ template<typename... Ts> class NASA_Request_Read_Action : public Action<Ts...> {
       };
       messages.push_back(c->get_message());
     });
-    this->controller_->read(messages);
+    if (!this->addressed_) {
+      this->controller_->read(messages);
+      return;
+    }
+    std::map<std::string, std::vector<uint16_t>> by_address;
+    for (auto *c : this->components_)
+      by_address[c->get_address()].push_back(c->get_message());
+    for (auto &entry : by_address)
+      this->controller_->read_from(entry.first, entry.second);
   }
 
  protected:
   std::vector<NASA_Base *> components_;
+  bool addressed_{false};
   NASA_Controller *controller_;
 };
 

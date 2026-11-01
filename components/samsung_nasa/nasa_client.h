@@ -39,8 +39,12 @@ class NASA_Client : public PollingComponent, public uart::UARTDevice {
   void loop() override;
   void dump_config() override;
   void publish_read(const std::vector<uint16_t> &messages);
+  // Read sent directly to one device instead of the broadcast address
+  void publish_read_to(const std::string &address, const std::vector<uint16_t> &messages);
   void publish_from_queue(std::vector<uint16_t> &messages);
   void publish_request(const std::string &address, uint16_t message, long value);
+  // Single value message with an explicit data type (e.g. Write instead of Request)
+  void publish_value(const std::string &address, uint16_t message, long value, DataType type);
   // Single structure message with a fixed payload to one device (e.g. 0x461E error history, 0x860B pre-error cycle data)
   void publish_structure(const std::string &address, uint16_t message, DataType type, const std::vector<uint8_t> &payload);
   void set_flow_control_pin(GPIOPin *flow_control_pin) { this->flow_control_pin_ = flow_control_pin; }

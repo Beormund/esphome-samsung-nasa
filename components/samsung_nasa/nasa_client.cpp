@@ -254,6 +254,19 @@ void NASA_Client::publish_from_queue(std::vector<uint16_t> &messages) {
   this->publish_data(packet.command.packetNumber, packet.encode());
 }
 
+void NASA_Client::publish_read_to(const std::string &address, const std::vector<uint16_t> &messages) {
+  Packet packet = Packet::create_partial(Address::parse(address), DataType::Read);
+  for (const auto &message : messages) {
+    MessageSet request(message);
+    request.value = 0;
+    packet.messages.push_back(request);
+  }
+  if (packet.messages.size() == 0)
+    return;
+  packet.log_multiline(std::string("Read"), log_lines_func);
+  this->publish_data(packet.command.packetNumber, packet.encode());
+}
+
 void NASA_Client::publish_structure(const std::string &address, uint16_t message, DataType type,
                                     const std::vector<uint8_t> &payload) {
   if (payload.size() > sizeof(Buffer::data))
@@ -278,6 +291,15 @@ void NASA_Client::publish_request(const std::string &address, uint16_t message, 
   this->publish_data(packet.command.packetNumber, packet.encode());
   // Issue a read to confirm command was successful
   this->dispatcher_.push(message);
+}
+
+void NASA_Client::publish_value(const std::string &address, uint16_t message, long value, DataType type) {
+  Packet packet = Packet::create_partial(Address::parse(address), type);
+  MessageSet message_set(message);
+  message_set.value = value;
+  packet.messages.push_back(message_set);
+  packet.log_multiline(std::string("Value"), log_lines_func);
+  this->publish_data(packet.command.packetNumber, packet.encode());
 }
 
 void NASA_Client::dump_config() {

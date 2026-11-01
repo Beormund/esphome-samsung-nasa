@@ -19,6 +19,9 @@ class NASA_Controller : public PollingComponent {
   void update() override;
   void write(const std::string &address, const uint16_t &number, long value);
   void read(const std::vector<uint16_t> &numbers);
+  // type: NASA data type (2 = Write, 3 = Request); write() always uses Request
+  void write_as(const std::string &address, uint16_t number, long value, uint8_t type);
+  void read_from(const std::string &address, const std::vector<uint16_t> &numbers);
   // type: NASA data type (1 = Read, 2 = Write), as observed on the bus for this message
   void send_structure(const std::string &address, uint16_t number, uint8_t type, const std::vector<uint8_t> &payload);
   void register_device(NASA_Device *device);
