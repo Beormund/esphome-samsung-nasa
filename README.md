@@ -140,7 +140,9 @@ Refer to p.24 onwards of the [MIM-E03EN user manual PDF](MIM-E03EN.pdf).
 2032, 2051, 2052, 2061, 2062, 2071, 2072, 3021, 3022, 3023, 3024, 3025, 3026, 3032, 3033,
 3043, 3044, 3045, 3052, 3046, 3081, 3082, 3083, 4012, 4013, 4024, 4025, 4033, 4042, 4043, 
 4044, 4045, 4046, 4052, 4053, 5011, 5013, 5014, 5015, 5016, 5017, 5018, 5019, 5021, 5023,
-5082, 5083, 5092, 5093
+5031, 5032, 5061, 5082, 5083, 5092, 5093
+
+5031 and 5032 are TDM variables (TDM products only); on other units they are reported but have no effect.
 
 
 You can find a list of supported commands and FSVs in the [python configuration file for number components.](/components/samsung_nasa/nasa/numbers.py)

@@ -529,6 +529,24 @@ numbers = {
         CONF_DATA: fsv_numeric_data(5023, 0, 40),
         CONF_DEFAULTS: temperature_defaults()
     },
+    0x427D: {
+        NASA_LABEL: "VAR_IN_FSV_5031",
+        NASA_MODE: CONTROLLER_MODE_FSV,
+        CONF_DATA: fsv_numeric_data(5031, 10, 90),
+        CONF_DEFAULTS: number_defaults(DEVICE_CLASS_DURATION, UNIT_MINUTE, ICON_TIMELAPSE)
+    },
+    0x427E: {
+        NASA_LABEL: "VAR_IN_FSV_5032",
+        NASA_MODE: CONTROLLER_MODE_FSV,
+        CONF_DATA: fsv_numeric_data(5032, 3, 60),
+        CONF_DEFAULTS: number_defaults(DEVICE_CLASS_DURATION, UNIT_MINUTE, ICON_TIMELAPSE)
+    },
+    0x40B4: {
+        NASA_LABEL: "ENUM_IN_FSV_5061",
+        NASA_MODE: CONTROLLER_MODE_FSV,
+        CONF_DATA: fsv_numeric_data(5061, 1, 7),
+        CONF_DEFAULTS: number_defaults()
+    },
     0x42DB: {
         NASA_LABEL: "VAR_IN_FSV_5082",
         NASA_MODE: CONTROLLER_MODE_FSV,
