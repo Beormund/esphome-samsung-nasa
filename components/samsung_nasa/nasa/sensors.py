@@ -408,7 +408,9 @@ sensors = {
         CONF_DEFAULTS: sensor_defaults(
             icon=ICON_ALERT,
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
-            filters=[{CONF_DELTA: 1.0}]
+            # delta 0: only drop identical values. ESPHome's delta filter passes a value only if it
+            # differs by MORE than the threshold, so 1.0 silently dropped changes of exactly one (e.g. 0 -> 1).
+            filters=[{CONF_DELTA: 0.0}]
         )
     },
     0x8236: {
