@@ -129,12 +129,17 @@ fsv = {
     5021: 0x427C,
     5022: 0x4128,
     5023: 0x42F0,
+    # TDM Variables (TDM products only)
+    5031: 0x427D,
+    5032: 0x427E,
     # Power Peak Control
     5041: 0x40A4,
     5042: 0x40A5,
     5043: 0x40A6,
     # Frequency Ratio Control
     5051: 0x40A7,
+    # Ratio of hot water supply compared to heating
+    5061: 0x40B4,
     # PV Control
     5081: 0x411B,
     5082: 0x42DB,
