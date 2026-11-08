@@ -53,12 +53,19 @@ void NASA_Controller::setup() {
     }
     return result;
   });
-  // Do an initial read request for all registered components
-  std::vector<uint16_t> numbers;
+  // Do an initial read request for all registered components, addressed to
+  // each component's own device. A single broadcast read uses the hard-coded
+  // address b2.00.20, which is not answered by units whose address has been
+  // changed (e.g. 20.01.00 after a MIM-B19N modbus board was fitted).
+  std::map<std::string, std::vector<uint16_t>> by_address;
   for (auto const &pair : this->components_) {
-    numbers.push_back(pair.first);
+    for (auto *component : pair.second) {
+      by_address[component->get_address()].push_back(pair.first);
+    }
   }
-  this->read(numbers);
+  for (auto &entry : by_address) {
+    this->read_from(entry.first, entry.second);
+  }
 }
 
 void NASA_Controller::register_device(NASA_Device *device) { this->devices_.emplace(device->get_address(), device); }
