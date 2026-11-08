@@ -58,7 +58,9 @@ template<typename... Ts> class NASA_Request_Read_Action : public Action<Ts...> {
 
  protected:
   std::vector<NASA_Base *> components_;
-  bool addressed_{false};
+  // Default to addressed reads. A broadcast read uses the hard-coded address
+  // b2.00.20 and is not answered when the unit address has been changed.
+  bool addressed_{true};
   NASA_Controller *controller_;
 };
 
