@@ -289,8 +289,13 @@ void NASA_Client::publish_request(const std::string &address, uint16_t message, 
     return;
   packet.log_multiline(std::string("Request"), log_lines_func);
   this->publish_data(packet.command.packetNumber, packet.encode());
-  // Issue a read to confirm command was successful
-  this->dispatcher_.push(message);
+  // Issue a read to confirm command was successful.
+  // Send it to the same device the write was addressed to. The old code pushed
+  // the message onto the broadcast dispatcher, which uses the hard-coded
+  // broadcast address b2.00.20 (channel 00, address 20). Units whose address
+  // has been changed (e.g. 20.01.00 after a MIM-B19N modbus board was fitted)
+  // do not answer that broadcast, so the confirmation read timed out.
+  this->publish_read_to(address, {message});
 }
 
 void NASA_Client::publish_value(const std::string &address, uint16_t message, long value, DataType type) {
