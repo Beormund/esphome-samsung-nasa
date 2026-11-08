@@ -124,7 +124,7 @@ nasa_item_base_schema = cv.Schema(
     cv.Schema({
         cv.GenerateID(NASA_CONTROLLER_ID): cv.use_id(NASA_Controller),
         cv.Required(CONF_ID): cv.ensure_list(cv.use_id(NASA_Base)),
-        cv.Optional("addressed", default=False): cv.boolean,
+        cv.Optional("addressed", default=True): cv.boolean,
     }),
     synchronous=False
 )
