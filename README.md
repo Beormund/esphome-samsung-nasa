@@ -1,5 +1,9 @@
 # ESPHome / Home Assistant Samsung Heat Pump Integration
 
+> ⚠️ **Safety Notice**
+> 
+> Use at your own risk. Write actions (`request_write`, `request_write_as`, `send_structure` with data type write, writable numbers/selects/switches) change settings on the heat pump. Not every message or value is supported by every unit or firmware; only send what you know your unit accepts.
+
 If you find this useful please consider supporting me by buying me a coffee. Thank you!
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jvn5gy8fdy)
