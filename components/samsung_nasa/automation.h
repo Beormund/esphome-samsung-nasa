@@ -125,6 +125,32 @@ template<typename... Ts> class NASA_Request_Write_Action : public Action<Ts...> 
   std::vector<std::function<void(const Ts &...)>> actions_;
 };
 
+// One value with an explicit NASA data type (2 = Write, 3 = Request), see write_as()
+template<typename... Ts> class NASA_Request_Write_As_Action : public Action<Ts...> {
+ public:
+  explicit NASA_Request_Write_As_Action(NASA_Controller *controller) : controller_(controller) {}
+
+  void set_address(const std::string &address) { this->address_ = address; }
+  void set_message(uint16_t message) { this->message_ = message; }
+  void set_data_type(uint8_t data_type) { this->data_type_ = data_type; }
+  TEMPLATABLE_VALUE(int32_t, value)
+
+  void play(const Ts &...x) override {
+    const long value = this->value_.value(x...);
+    if (debug_log_messages) {
+      ESP_LOGI(TAG, "Request Write As Action: 0x%X = %ld to %s (data type %u)", this->message_, value,
+               this->address_.c_str(), (unsigned) this->data_type_);
+    }
+    this->controller_->write_as(this->address_, this->message_, value, this->data_type_);
+  }
+
+ protected:
+  NASA_Controller *controller_;
+  std::string address_;
+  uint16_t message_{0};
+  uint8_t data_type_{2};
+};
+
 template<typename... Ts> class NASA_Send_Structure_Action : public Action<Ts...> {
  public:
   explicit NASA_Send_Structure_Action(NASA_Controller *controller) : controller_(controller) {}
