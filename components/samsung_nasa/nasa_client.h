@@ -19,6 +19,12 @@ enum class DataResult;
 void defaultAddressCallback(std::string address);
 bool defaultReceiveCallback(std::string source_address, MessageSet &message);
 
+// One queued read: empty address = broadcast, otherwise the device it is sent to
+struct ReadRequest {
+  std::string address;
+  uint16_t message;
+};
+
 struct OutgoingData {
   uint8_t id;
   std::vector<uint8_t> data;
@@ -39,9 +45,9 @@ class NASA_Client : public PollingComponent, public uart::UARTDevice {
   void loop() override;
   void dump_config() override;
   void publish_read(const std::vector<uint16_t> &messages);
-  // Read sent directly to one device instead of the broadcast address
+  // Read sent directly to one device instead of the broadcast address (batched like publish_read)
   void publish_read_to(const std::string &address, const std::vector<uint16_t> &messages);
-  void publish_from_queue(std::vector<uint16_t> &messages);
+  void publish_from_queue(std::vector<ReadRequest> &requests);
   void publish_request(const std::string &address, uint16_t message, long value);
   // Single value message with an explicit data type (e.g. Write instead of Request)
   void publish_value(const std::string &address, uint16_t message, long value, DataType type);
@@ -76,7 +82,7 @@ class NASA_Client : public PollingComponent, public uart::UARTDevice {
   // Construct a queue dispatcher that will dispatch messages via a callback
   // 100 = limit to 100 messages, Any more and they will be discarded
   // Batch deliver 10 messages every 200 millisecs. Avoids overloading the bus
-  BatchDispatcher<uint16_t> dispatcher_{100, 10, 200};
+  BatchDispatcher<ReadRequest> dispatcher_{100, 10, 200};
   std::deque<OutgoingData> send_queue_;
 
 };

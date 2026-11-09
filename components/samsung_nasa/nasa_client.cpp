@@ -26,7 +26,7 @@ void NASA_Client::setup() {
   }
   this->dispatcher_.setup();
   this->dispatcher_.register_receive_callback(
-      [this](std::vector<uint16_t> messages) { this->publish_from_queue(messages); });
+      [this](std::vector<ReadRequest> requests) { this->publish_from_queue(requests); });
 }
 
 void NASA_Client::update() {
@@ -238,33 +238,36 @@ void NASA_Client::process_messageset(std::string source, std::string dest, Messa
 }
 
 // Dont directly publish - use  batched dispatcher
-void NASA_Client::publish_read(const std::vector<uint16_t> &messages) { this->dispatcher_.push(messages); }
-
-void NASA_Client::publish_from_queue(std::vector<uint16_t> &messages) {
-  Address destAddress = Address::get_broadcast_address();
-  Packet packet = Packet::create_partial(destAddress, DataType::Read);
-  for (const auto &message : messages) {
-    MessageSet request(message);
-    request.value = 0;
-    packet.messages.push_back(request);
-  }
-  if (packet.messages.size() == 0)
-    return;
-  packet.log_multiline(std::string("Read"), log_lines_func);
-  this->publish_data(packet.command.packetNumber, packet.encode());
+void NASA_Client::publish_read(const std::vector<uint16_t> &messages) {
+  for (const auto &message : messages)
+    this->dispatcher_.push(ReadRequest{"", message});
 }
 
 void NASA_Client::publish_read_to(const std::string &address, const std::vector<uint16_t> &messages) {
-  Packet packet = Packet::create_partial(Address::parse(address), DataType::Read);
-  for (const auto &message : messages) {
-    MessageSet request(message);
-    request.value = 0;
-    packet.messages.push_back(request);
+  for (const auto &message : messages)
+    this->dispatcher_.push(ReadRequest{address, message});
+}
+
+// One read packet per destination, in the order the batch was queued
+void NASA_Client::publish_from_queue(std::vector<ReadRequest> &requests) {
+  std::vector<std::string> addresses;
+  for (const auto &request : requests) {
+    if (std::find(addresses.begin(), addresses.end(), request.address) == addresses.end())
+      addresses.push_back(request.address);
   }
-  if (packet.messages.size() == 0)
-    return;
-  packet.log_multiline(std::string("Read"), log_lines_func);
-  this->publish_data(packet.command.packetNumber, packet.encode());
+  for (const auto &address : addresses) {
+    Address destAddress = address.empty() ? Address::get_broadcast_address() : Address::parse(address);
+    Packet packet = Packet::create_partial(destAddress, DataType::Read);
+    for (const auto &request : requests) {
+      if (request.address != address)
+        continue;
+      MessageSet message_set(request.message);
+      message_set.value = 0;
+      packet.messages.push_back(message_set);
+    }
+    packet.log_multiline(std::string("Read"), log_lines_func);
+    this->publish_data(packet.command.packetNumber, packet.encode());
+  }
 }
 
 void NASA_Client::publish_structure(const std::string &address, uint16_t message, DataType type,
@@ -289,8 +292,9 @@ void NASA_Client::publish_request(const std::string &address, uint16_t message, 
     return;
   packet.log_multiline(std::string("Request"), log_lines_func);
   this->publish_data(packet.command.packetNumber, packet.encode());
-  // Issue a read to confirm command was successful
-  this->dispatcher_.push(message);
+  // Issue a read to confirm command was successful, sent to the device that was written to:
+  // a unit with a changed address (e.g. 20.01.00) does not answer the broadcast read
+  this->publish_read_to(address, {message});
 }
 
 void NASA_Client::publish_value(const std::string &address, uint16_t message, long value, DataType type) {

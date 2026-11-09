@@ -29,9 +29,12 @@ class NASA_Controller : public PollingComponent {
   void set_debug_log_messages(bool value) { debug_log_messages = value; }
   void set_debug_log_messages_raw(bool value) { debug_log_raw_bytes = value; }
   void set_debug_log_undefined_messages(bool value) { debug_log_undefined_messages = value; }
+  // true: the initial read after boot is sent to each device address instead of the broadcast address
+  void set_addressed_reads(bool value) { this->addressed_reads_ = value; }
   void register_address(const std::string address) { addresses_.insert(address); }
 
  protected:
+  bool addressed_reads_{false};
   std::map<std::string, NASA_Device *> devices_;
   std::set<std::string> addresses_;
   std::map<uint16_t, std::vector<NASA_Base *>> components_;

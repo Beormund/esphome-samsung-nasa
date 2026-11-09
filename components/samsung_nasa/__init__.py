@@ -56,6 +56,7 @@ NASA_DEVICES = "devices"
 NASA_DEBUG_LOG_MESSAGES = "debug_log_messages"
 NASA_DEBUG_LOG_MESSAGES_RAW = "debug_log_messages_raw"
 NASA_DEBUG_LOG_UNDEFINED_MESSAGES = "debug_log_undefined_messages"
+NASA_ADDRESSED_READS = "addressed_reads"
 address_pattern = re.compile("([0-9a-f]{2})(?:\\.[0-9a-f]{2}){2}", re.IGNORECASE)
 
 def device_validator(config):
@@ -104,6 +105,7 @@ CONFIG_SCHEMA = cv.Schema(
             cv.Optional(NASA_DEBUG_LOG_MESSAGES, default=False): cv.boolean,
             cv.Optional(NASA_DEBUG_LOG_MESSAGES_RAW, default=False): cv.boolean,
             cv.Optional(NASA_DEBUG_LOG_UNDEFINED_MESSAGES, default=False): cv.boolean,
+            cv.Optional(NASA_ADDRESSED_READS, default=False): cv.boolean,
             cv.Required(NASA_DEVICES): cv.ensure_list(device_schema),
             cv.Optional(NASA_MODEL, default="STANDARD"): cv.one_of(*MODELS, upper=True)
         }
@@ -234,6 +236,7 @@ async def to_code(config):
     cg.add(controller.set_debug_log_messages(config[NASA_DEBUG_LOG_MESSAGES]))
     cg.add(controller.set_debug_log_messages_raw(config[NASA_DEBUG_LOG_MESSAGES_RAW]))
     cg.add(controller.set_debug_log_undefined_messages(config[NASA_DEBUG_LOG_UNDEFINED_MESSAGES]))
+    cg.add(controller.set_addressed_reads(config[NASA_ADDRESSED_READS]))
     for device in config[NASA_DEVICES]:
         var_device = cg.new_Pvariable(
             device[CONF_ID], 

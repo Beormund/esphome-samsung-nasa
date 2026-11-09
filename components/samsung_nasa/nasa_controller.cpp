@@ -54,11 +54,22 @@ void NASA_Controller::setup() {
     return result;
   });
   // Do an initial read request for all registered components
-  std::vector<uint16_t> numbers;
-  for (auto const &pair : this->components_) {
-    numbers.push_back(pair.first);
+  if (!this->addressed_reads_) {
+    std::vector<uint16_t> numbers;
+    for (auto const &pair : this->components_) {
+      numbers.push_back(pair.first);
+    }
+    this->read(numbers);
+    return;
   }
-  this->read(numbers);
+  // addressed_reads: one read per device, for units that do not answer the broadcast read
+  std::map<std::string, std::vector<uint16_t>> by_address;
+  for (auto const &pair : this->components_) {
+    for (auto *component : pair.second)
+      by_address[component->get_address()].push_back(pair.first);
+  }
+  for (auto &entry : by_address)
+    this->read_from(entry.first, entry.second);
 }
 
 void NASA_Controller::register_device(NASA_Device *device) { this->devices_.emplace(device->get_address(), device); }

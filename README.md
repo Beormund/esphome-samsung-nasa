@@ -80,6 +80,17 @@ samsung_nasa:
 
 The nasa_client configuration options are to do with ensuring NASA message delivery via a retry mechansim. Thanks and acknowledgment go to atanasenko for the [retry mechanism.](https://github.com/omerfaruk-aran/esphome_samsung_hvac_bus/commit/1030af3bcc4f3dc688be643e0c2ae65b6401fcc5)
 
+### Addressed reads
+
+```yaml
+samsung_nasa:
+  addressed_reads: true
+```
+
+By default the read after boot is broadcast. Some units do not answer a broadcast read, for example when the unit address was changed (e.g. 20.01.00 after a MIM-B19N Modbus interface was fitted), so all values stay unknown until the unit sends them on its own. With `addressed_reads: true` the read after boot is sent to each configured device address instead. Like broadcast reads, addressed reads are queued and sent in batches of 10 messages every 200 ms.
+
+The read that confirms a write is always sent to the device that was written to.
+
 ### Debug output
 
 - `debug_log_messages`: every received value as `Src:… Dst:… 0x4238 = 326 n=1234`, plus the packets of non-notification types.
@@ -511,7 +522,7 @@ interval:
 
 In the above automation FSV values are read 30 seconds after startup and then every 30 minutes (or for example once a day).
 
-By default the read request is broadcast. With `addressed: true` the request is sent directly to the device each component belongs to (one request per device). The default broadcast behaviour is unchanged.
+By default the read request is broadcast. With `addressed: true` the request is sent directly to the device each component belongs to, in batches of 10 messages per device. The default broadcast behaviour is unchanged.
 
 ```yaml
       - samsung_nasa.request_read:
