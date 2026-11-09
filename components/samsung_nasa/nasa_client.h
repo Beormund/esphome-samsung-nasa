@@ -58,6 +58,8 @@ class NASA_Client : public PollingComponent, public uart::UARTDevice {
   void set_retry_interval(uint16_t value) { retry_interval = value; }
   void set_min_retries(uint8_t value) { min_retries = value; }
   void set_send_timeout(uint16_t value) { send_timeout = value; }
+  // true: the read that confirms a write is sent to the written device instead of the broadcast address
+  void set_addressed_reads(bool value) { this->addressed_reads_ = value; }
   void register_address_callback(RegisterAddressFunc raf) { this->addressFunc_ = raf; }
   void register_receive_callback(RegisterReceiveFunc rrf) { this->receiveFunc_ = rrf; }
 
@@ -68,6 +70,7 @@ class NASA_Client : public PollingComponent, public uart::UARTDevice {
   uint32_t last_transmission_ = 0;
   uint16_t skip_data(int from);
   bool data_processing_init = true;
+  bool addressed_reads_{false};
   void process_nasa_packet();
   void ack_data(uint8_t id);
   bool read_data();

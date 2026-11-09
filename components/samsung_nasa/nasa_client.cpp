@@ -292,9 +292,12 @@ void NASA_Client::publish_request(const std::string &address, uint16_t message, 
     return;
   packet.log_multiline(std::string("Request"), log_lines_func);
   this->publish_data(packet.command.packetNumber, packet.encode());
-  // Issue a read to confirm command was successful, sent to the device that was written to:
-  // a unit with a changed address (e.g. 20.01.00) does not answer the broadcast read
-  this->publish_read_to(address, {message});
+  // Issue a read to confirm command was successful. With addressed_reads it is sent to the device
+  // that was written to: a unit with a changed address (e.g. 20.01.00) does not answer the broadcast read
+  if (this->addressed_reads_)
+    this->publish_read_to(address, {message});
+  else
+    this->publish_read({message});
 }
 
 void NASA_Client::publish_value(const std::string &address, uint16_t message, long value, DataType type) {

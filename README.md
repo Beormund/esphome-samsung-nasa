@@ -87,9 +87,7 @@ samsung_nasa:
   addressed_reads: true
 ```
 
-By default the read after boot is broadcast. Some units do not answer a broadcast read, for example when the unit address was changed (e.g. 20.01.00 after a MIM-B19N Modbus interface was fitted), so all values stay unknown until the unit sends them on its own. With `addressed_reads: true` the read after boot is sent to each configured device address instead. Like broadcast reads, addressed reads are queued and sent in batches of 10 messages every 200 ms.
-
-The read that confirms a write is always sent to the device that was written to.
+By default the read after boot is broadcast. Some units do not answer a broadcast read, for example when the unit address was changed (e.g. 20.01.00 after a MIM-B19N Modbus interface was fitted), so all values stay unknown until the unit sends them on its own. With `addressed_reads: true` the read after boot is sent to each configured device address instead, and the read that confirms a write goes to the device that was written to. Like broadcast reads, addressed reads are queued and sent in batches of 10 messages every 200 ms. Without the option nothing changes.
 
 ### Debug output
 
