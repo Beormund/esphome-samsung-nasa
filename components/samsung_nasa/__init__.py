@@ -40,6 +40,7 @@ NASA_Controller = samsung_nasa_ns.class_("NASA_Controller", cg.PollingComponent)
 NASA_Request_Read_Action = samsung_nasa_ns.class_("NASA_Request_Read_Action")
 NASA_Request_Write_Action = samsung_nasa_ns.class_("NASA_Request_Write_Action")
 NASA_Send_Structure_Action = samsung_nasa_ns.class_("NASA_Send_Structure_Action")
+NASA_Request_Write_As_Action = samsung_nasa_ns.class_("NASA_Request_Write_As_Action")
 NASA_Client = samsung_nasa_ns.class_("NASA_Client", cg.PollingComponent, uart.UARTDevice)
 NASA_Device = samsung_nasa_ns.class_("NASA_Device")
 NASA_CONTROLLER_ID = "nasa_controller_id"
@@ -56,6 +57,7 @@ NASA_DEVICES = "devices"
 NASA_DEBUG_LOG_MESSAGES = "debug_log_messages"
 NASA_DEBUG_LOG_MESSAGES_RAW = "debug_log_messages_raw"
 NASA_DEBUG_LOG_UNDEFINED_MESSAGES = "debug_log_undefined_messages"
+NASA_ADDRESSED_READS = "addressed_reads"
 address_pattern = re.compile("([0-9a-f]{2})(?:\\.[0-9a-f]{2}){2}", re.IGNORECASE)
 
 def device_validator(config):
@@ -104,6 +106,7 @@ CONFIG_SCHEMA = cv.Schema(
             cv.Optional(NASA_DEBUG_LOG_MESSAGES, default=False): cv.boolean,
             cv.Optional(NASA_DEBUG_LOG_MESSAGES_RAW, default=False): cv.boolean,
             cv.Optional(NASA_DEBUG_LOG_UNDEFINED_MESSAGES, default=False): cv.boolean,
+            cv.Optional(NASA_ADDRESSED_READS, default=False): cv.boolean,
             cv.Required(NASA_DEVICES): cv.ensure_list(device_schema),
             cv.Optional(NASA_MODEL, default="STANDARD"): cv.one_of(*MODELS, upper=True)
         }
@@ -184,6 +187,31 @@ async def request_write_to_code(config, action_id, template_arg, args):
             
     return var
 
+WRITE_AS_DATA_TYPES = {"write": 2, "request": 3}
+
+@automation.register_action(
+    "samsung_nasa.request_write_as",
+    NASA_Request_Write_As_Action,
+    cv.Schema({
+        cv.GenerateID(NASA_CONTROLLER_ID): cv.use_id(NASA_Controller),
+        cv.Required(NASA_DEVICE_ID): cv.use_id(NASA_Device),
+        cv.Required("message"): cv.hex_uint16_t,
+        cv.Required("value"): cv.templatable(cv.int_),
+        cv.Optional("data_type", default="write"): cv.one_of(*WRITE_AS_DATA_TYPES, lower=True),
+    }),
+    synchronous=False
+)
+async def request_write_as_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[NASA_CONTROLLER_ID])
+    device = await cg.get_variable(config[NASA_DEVICE_ID])
+    var = cg.new_Pvariable(action_id, template_arg, parent)
+    cg.add(var.set_address(device.get_address()))
+    cg.add(var.set_message(config["message"]))
+    cg.add(var.set_data_type(WRITE_AS_DATA_TYPES[config["data_type"]]))
+    template_val = await cg.templatable(config["value"], args, cg.int32)
+    cg.add(var.set_value(template_val))
+    return var
+
 STRUCTURE_DATA_TYPES = {"read": 1, "write": 2}
 
 @automation.register_action(
@@ -234,6 +262,7 @@ async def to_code(config):
     cg.add(controller.set_debug_log_messages(config[NASA_DEBUG_LOG_MESSAGES]))
     cg.add(controller.set_debug_log_messages_raw(config[NASA_DEBUG_LOG_MESSAGES_RAW]))
     cg.add(controller.set_debug_log_undefined_messages(config[NASA_DEBUG_LOG_UNDEFINED_MESSAGES]))
+    cg.add(controller.set_addressed_reads(config[NASA_ADDRESSED_READS]))
     for device in config[NASA_DEVICES]:
         var_device = cg.new_Pvariable(
             device[CONF_ID], 
