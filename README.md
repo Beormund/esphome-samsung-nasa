@@ -689,6 +689,108 @@ The same is available from lambdas as `id(nasa_controller).send_structure("20.00
 
 WARNING: `send_structure` sends whatever you give it. Only send the messages documented here.
 
+#### Reading device information
+
+The structure messages listed under [Structure messages](#structure-messages) are not sent on their own; they arrive only when a device on the bus asks for them. A read with 10 zero bytes is answered with the content (tested on an EHS Mono, all as data type `read`):
+
+| Device | Message | Content |
+|---|---|---|
+| indoor 20.00.00 | 0x0600, 0x0601, 0x0602, 0x0603 | product option / installation options |
+| indoor 20.00.00 | 0x0605 | location (empty if not set) |
+| indoor 20.00.00 | 0x0607 | serial number |
+| indoor 20.00.00 | 0x0608 | main micom |
+| outdoor 10.00.00 | 0x061A | product model name |
+| outdoor 10.00.00 | 0x0605 | location |
+| outdoor 10.00.00 | 0x0607 | serial number |
+| outdoor 10.00.00 | 0x0608, 0x060C | main micom, EEPROM |
+| outdoor 10.00.00 | 0x8601 | inverter micom |
+| Wi-Fi kit 62.00.91 | 0x061C | MAC address (payload: 1 zero byte; also answered as a broadcast read) |
+
+```yaml
+script:
+  - id: read_device_info
+    mode: single
+    then:
+      - samsung_nasa.send_structure:
+          nasa_device_id: nasa_device_2   # outdoor unit 10.00.00
+          message: 0x061A
+          data_type: read
+          payload: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+      - delay: 1500ms
+      - samsung_nasa.send_structure:
+          nasa_device_id: nasa_device_1   # indoor unit 20.00.00
+          message: 0x0607
+          data_type: read
+          payload: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+      # ... one block per message from the table, 1.5 s apart
+```
+
+These values only change when a unit is replaced or updated, which means the bus is powered off and the ESP restarts anyway, so reading them once after boot is enough.
+
+#### Reading everything before connecting to Home Assistant
+
+After a reboot most values stay unknown in Home Assistant until the units send them or the read after boot has been answered, which can take a few minutes. If Wi-Fi is switched on only after a first round of reads, Home Assistant receives complete values when the ESP connects:
+
+```yaml
+wifi:
+  enable_on_boot: false
+  # ssid, password, ...
+
+esphome:
+  on_boot:
+    - priority: -100
+      then:
+        - script.execute: first_round
+        # safety net: Wi-Fi on after at most 4 minutes, even if the round hangs
+        - delay: 240s
+        - wifi.enable:
+
+script:
+  - id: first_round
+    mode: single
+    then:
+      - delay: 5s
+      - script.execute: read_device_info
+      - script.wait: read_device_info
+      # ... FSV reads etc.
+      # wait until no new value has arrived for 20 s (at most 90 s)
+      - wait_until:
+          timeout: 90s
+          condition:
+            lambda: |-
+              static uint32_t last_change = millis();
+              static int last_missing = -1;
+              int missing = 0;
+              for (auto *x : App.get_sensors()) if (!x->has_state()) missing++;
+              for (auto *x : App.get_binary_sensors()) if (!x->has_state()) missing++;
+              for (auto *x : App.get_text_sensors()) if (!x->has_state()) missing++;
+              if (missing != last_missing) { last_missing = missing; last_change = millis(); }
+              return millis() - last_change > 20000;
+      - wifi.enable:
+```
+
+Values a unit does not have stay unknown either way; on an EHS Mono that took about 2.5 minutes from flashing until Home Assistant showed all available values.
+
+#### Reading the error history when the error code changes
+
+Instead of reading 0x461E on a schedule, read it whenever the error code (0x8235) changes:
+
+```yaml
+sensor:
+  - platform: samsung_nasa
+    message: 0x8235
+    nasa_device_id: nasa_device_2
+    name: Error code
+    on_value:
+      then:
+        - delay: 5s
+        - samsung_nasa.send_structure:
+            nasa_device_id: nasa_device_1
+            message: 0x461E
+            data_type: read
+            payload: [0x00, 0x00, 0x00, 0x00, 0x00]
+```
+
 #### 0x860B layout
 
 The outdoor unit answers with 30 records, one per minute, covering the 30 minutes up to the error; the last record is the error itself. Each record is 13 notification packets with one 0x860B structure each. Structure payload: `00 01`, record number (0–29), `1D` (= last record number), packet number (0–12), then the data bytes listed below (byte 0 is always `0C`). The dump was still present after the error had been reset. Only packets 0, 1 and 4 carried data on a single-compressor monobloc.
