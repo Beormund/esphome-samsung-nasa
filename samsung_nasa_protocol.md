@@ -52,13 +52,13 @@ Thank you to lanwin, who implemented [esphome\_samsung\_ac](https://github.com/l
 
 ## Observed bus behaviour
 
-Observations from an EHS Mono (AE260RNWMGG / AE140BXYDGG with Wi-Fi kit MIM-H04EN), checked on
-23.10.2026. Meanings marked *assumed* are derived from captures, not from Samsung documents.
+Observations from an EHS Mono with Wi-Fi kit. Meanings marked *assumed* are derived from the bus, not from
+Samsung documents.
 
 ### Addresses
 
 An address is `class.channel.address`. Some tools show the last byte in decimal (`62.00.91` = `62.00.145`).
-Seen on the bus: `10.00.00` outdoor, `20.00.00` indoor, `62.00.91` Wi-Fi kit, `80.ff.00`/`80.ff.01` diagnostic equipment
+Seen on the bus: `10.00.00` outdoor, `20.00.00` indoor, `62.00.91` Wi-Fi kit, `80.ff.00` this component
 (class JIGTester), broadcasts such as `b0.00.ff`, `b0.ff.10`, `b2.00.20`, `b3.00.ff`.
 
 ### Wi-Fi kit plug-and-play (assumed)
@@ -83,7 +83,7 @@ Example: FSV 1031 → min 37.0, max 70.0, value 70.0. All 20 values read at star
 
 ### Verified structure messages
 
-Structures only appear when requested (diagnostic equipment, Wi-Fi kit). Payload layouts verified byte for byte on an EHS Mono:
+Structures only appear when requested (e.g. by this component or the Wi-Fi kit). Payload layouts verified byte for byte on an EHS Mono:
 
 | Message | Source | Content | `structure_format` |
 |---|---|---|---|
