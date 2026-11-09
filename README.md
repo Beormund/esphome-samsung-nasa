@@ -982,76 +982,266 @@ sensor:
     accuracy_decimals: 2
 ```
 
-To calculate the COP minute by minute (bear in mind this will only be meaningful when the heat pump is running):
+### Current COP
+
+Heat output (0x4426) and power input (0x8413) arrive about once per minute and at different times. Dividing whatever values are current at a fixed interval mixes an old value with a new one, so the result jumps. Calculating only when both values have been refreshed since the last calculation keeps the COP current without the jumps:
 
 ```yaml
-# Assuming the 0x4426 sensor has an id of heat_generated_last_min
-# Assuming the 0x8413 sensor has an id of heat_consumed_last_min
+# Assuming 0x4426 has id heat_output, 0x8413 has id power_input and the compressor frequency (0x8238) has id comp_freq
+globals:
+  - id: cop_heat_fresh
+    type: bool
+    initial_value: 'false'
+  - id: cop_power_fresh
+    type: bool
+    initial_value: 'false'
+
+script:
+  - id: cop_pair
+    then:
+      - lambda: |-
+          if (!id(cop_heat_fresh) || !id(cop_power_fresh)) return;
+          id(cop_heat_fresh) = false;
+          id(cop_power_fresh) = false;
+          float out = id(heat_output).get_raw_state();
+          float in = id(power_input).get_raw_state();
+          float hz = id(comp_freq).state;
+          // no COP while the compressor is off or the power input is too small to be meaningful
+          if (!std::isfinite(hz) || hz <= 0 || !std::isfinite(out) || !std::isfinite(in) || in < 100) {
+            id(cop_current).publish_state(NAN);
+            return;
+          }
+          id(cop_current).publish_state(out / in);
+
 sensor:
+  - platform: samsung_nasa
+    message: 0x4426
+    id: heat_output
+    # ...
+    on_raw_value:
+      then:
+        - lambda: 'id(cop_heat_fresh) = true;'
+        - script.execute: cop_pair
+  - platform: samsung_nasa
+    message: 0x8413
+    id: power_input
+    # ...
+    on_raw_value:
+      then:
+        - lambda: 'id(cop_power_fresh) = true;'
+        - script.execute: cop_pair
   - platform: template
-    name: COP - Instant
-    icon: mdi:chart-bar
+    name: COP - Current
+    id: cop_current
     state_class: measurement
-    lambda: |-
-      float x = (id(heat_generated_last_min).state /
-           id(heat_consumed_last_min).state);
-      if (x > 8) { x = 8; }
-      if (x < 0) { x = 0; }
-      return x;
-    update_interval: 10s
     accuracy_decimals: 2
+    update_interval: never
 ```
 
-Calculating daily COP takes a little more work. First, create two sensors using ESPHome's total_daily_energy platform. For the power_id fields use the heat_consumed_last_min (sensor 0x8413) and head_generated_last_min (sensor 0x4426) sensors from the example above.
+### Energy, runtime and starts per operating mode
+
+A COP over a day or a week is best calculated from the cumulative counters (0x4427 heat generated, 0x8414 energy consumed) as Δheat / Δenergy. Splitting the energy by operating mode matters, because domestic hot water runs at a higher flow temperature and a mixed COP says little about either mode.
+
+The header below assigns each increase of the counters to space heating, DHW, idle or unknown, based on the compressor frequency and the 3-way valve (0x4067). An increase that spans a change of mode is split by time. Defrost is counted in the mode it happens in and additionally on its own. Everything lives in RAM: after a reboot the counters start at 0 again, and Home Assistant continues them because they are `total_increasing`. Only the energy during the time the ESP is offline is not assigned.
+
+Save as `cop_split.h` next to your YAML:
+
+```cpp
+#pragma once
+#include <cstdint>
+
+namespace cop_split {
+
+enum Mode : uint8_t { HEATING = 0, DHW = 1, IDLE = 2, UNKNOWN = 3, MODES = 4 };
+
+struct Counter {
+  bool has_value = false;
+  float last = 0;
+  double time_ms[MODES] = {0};  // time per mode since the last counter value
+  double defrost_ms = 0;
+  double kwh[MODES] = {0};
+  double defrost_kwh = 0;
+};
+
+struct State {
+  Mode mode = UNKNOWN;
+  bool defrost = false;
+  bool has_time = false;
+  uint32_t since_ms = 0;
+  Counter counter[2];  // 0 = heat, 1 = energy
+  double run_ms[MODES] = {0};
+  double defrost_run_ms = 0;
+  uint32_t starts[MODES] = {0};
+};
+
+inline State &state() {
+  static State s;
+  return s;
+}
+
+inline Mode mode_of(bool hz_valid, float hz, bool valve_valid, bool valve_dhw) {
+  if (!hz_valid) return UNKNOWN;
+  if (hz <= 0) return IDLE;
+  if (!valve_valid) return UNKNOWN;
+  return valve_dhw ? DHW : HEATING;
+}
+
+// credit the elapsed time to the previous mode, then switch to the new one
+inline void update(uint32_t now_ms, Mode mode, bool defrost) {
+  State &s = state();
+  defrost = defrost && (mode == HEATING || mode == DHW);
+  if (s.has_time) {
+    double dt = (double) (uint32_t) (now_ms - s.since_ms);
+    s.run_ms[s.mode] += dt;
+    if (s.defrost) s.defrost_run_ms += dt;
+    for (auto &c : s.counter) {
+      c.time_ms[s.mode] += dt;
+      if (s.defrost) c.defrost_ms += dt;
+    }
+    if (s.mode == IDLE && (mode == HEATING || mode == DHW)) s.starts[mode]++;
+  }
+  s.mode = mode;
+  s.defrost = defrost;
+  s.since_ms = now_ms;
+  s.has_time = true;
+}
+
+inline void reset_time(Counter &c) {
+  for (auto &t : c.time_ms) t = 0;
+  c.defrost_ms = 0;
+}
+
+// new counter value in kWh
+inline void counter_value(int nr, float value, uint32_t now_ms) {
+  State &s = state();
+  update(now_ms, s.mode, s.defrost);
+  Counter &c = s.counter[nr];
+  if (!(value > 0)) return;
+  if (!c.has_value) {  // first value after boot: baseline only
+    c.has_value = true;
+    c.last = value;
+    reset_time(c);
+    return;
+  }
+  double delta = (double) value - (double) c.last;
+  if (delta == 0) return;
+  double total_ms = 0;
+  for (double t : c.time_ms) total_ms += t;
+  // counter went back or jumped (more than 30 kW over the elapsed time): new baseline, nothing assigned
+  if (delta < 0 || delta > 30.0 * total_ms / 3.6e6 + 0.05) {
+    if (delta < 0 && delta > -0.05) return;
+    c.last = value;
+    reset_time(c);
+    return;
+  }
+  if (total_ms <= 0) {
+    c.kwh[s.mode] += delta;
+    if (s.defrost) c.defrost_kwh += delta;
+  } else {
+    for (int m = 0; m < MODES; m++) c.kwh[m] += delta * c.time_ms[m] / total_ms;
+    c.defrost_kwh += delta * c.defrost_ms / total_ms;
+  }
+  c.last = value;
+  reset_time(c);
+}
+
+inline float kwh(int nr, Mode m) { return (float) state().counter[nr].kwh[m]; }
+inline float defrost_kwh(int nr) { return (float) state().counter[nr].defrost_kwh; }
+inline float hours(Mode m) { return (float) (state().run_ms[m] / 3.6e6); }
+inline float defrost_hours() { return (float) (state().defrost_run_ms / 3.6e6); }
+inline float starts(Mode m) { return (float) state().starts[m]; }
+
+}  // namespace cop_split
+```
+
+And in the YAML (ids as above, plus `heat_total` for 0x4427, `energy_total` for 0x8414, `valve_dhw` for the binary sensor 0x4067 and `defrost` for 0x402E):
 
 ```yaml
+esphome:
+  includes:
+    - cop_split.h
+
+script:
+  - id: cop_mode
+    then:
+      - lambda: |-
+          auto mode = cop_split::mode_of(id(comp_freq).has_state() && std::isfinite(id(comp_freq).state),
+                                         id(comp_freq).state, id(valve_dhw).has_state(), id(valve_dhw).state);
+          cop_split::update(millis(), mode, id(defrost).has_state() && id(defrost).state);
+      - script.execute: cop_publish
+  - id: cop_publish
+    then:
+      - lambda: |-
+          using namespace cop_split;
+          id(heat_heating).publish_state(kwh(0, HEATING));
+          id(heat_dhw).publish_state(kwh(0, DHW));
+          id(energy_heating).publish_state(kwh(1, HEATING));
+          id(energy_dhw).publish_state(kwh(1, DHW));
+          id(energy_idle).publish_state(kwh(1, IDLE));
+          id(energy_defrost).publish_state(defrost_kwh(1));
+          id(runtime_heating).publish_state(hours(HEATING));
+          id(runtime_dhw).publish_state(hours(DHW));
+          id(starts_heating).publish_state(starts(HEATING));
+          id(starts_dhw).publish_state(starts(DHW));
+
 sensor:
-  - platform: total_daily_energy
-    id: daily_energy_consumed
-    name: Daily Energy Consumed
-    power_id: heat_consumed_last_min
-    unit_of_measurement: 'kWh'
-    state_class: total_increasing
-    device_class: energy
-    accuracy_decimals: 3
-    filters:
-      # Multiplication factor from W to kW is 0.001
-      - multiply: 0.001
-  - platform: total_daily_energy
-    id: daily_heat_generated
-    name: Daily Heat Generated
-    power_id: heat_generated_last_min
-    unit_of_measurement: 'kWh'
-    state_class: total_increasing
-    device_class: energy
-    accuracy_decimals: 3
-    filters:
-      # Multiplication factor from W to kW is 0.001
-      - multiply: 0.001
-```
-Finally, use these two total_daily_energy sensors in a template sensor:
-
-```yaml
+  - platform: samsung_nasa
+    message: 0x8238
+    id: comp_freq
+    # ...
+    on_raw_value:  # every frame, so the mode is known soon after boot
+      then:
+        - script.execute: cop_mode
+  - platform: samsung_nasa
+    message: 0x4427
+    id: heat_total
+    # ...
+    on_value:  # after the library filter (kWh)
+      then:
+        - script.execute: cop_mode
+        - lambda: 'cop_split::counter_value(0, x, millis());'
+        - script.execute: cop_publish
+  - platform: samsung_nasa
+    message: 0x8414
+    id: energy_total
+    # ...
+    on_value:
+      then:
+        - script.execute: cop_mode
+        - lambda: 'cop_split::counter_value(1, x, millis());'
+        - script.execute: cop_publish
+  # one template sensor per value, for example:
   - platform: template
-    name: COP - Daily
-    icon: mdi:chart-bar
-    state_class: measurement
-    lambda: |-
-      float x = (id(daily_heat_generated).state /
-           id(daily_energy_consumed).state);
-      if (x > 8) { x = 8; }
-      if (x < 0) { x = 0; }
-      return x;
-```
-To have the daily COP sensor reset each day you will need a time component (sntp, home assistant etc). Dont' forget to set your [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (Region/City). 
+    name: Heat - Heating
+    id: heat_heating
+    unit_of_measurement: kWh
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+    update_interval: never
+  # ... heat_dhw, energy_heating, energy_dhw, energy_idle, energy_defrost (kWh),
+  # runtime_heating, runtime_dhw (h, device_class duration), starts_heating, starts_dhw (no unit)
 
-```yaml
-# Enable time component to reset energy at midnight
-time:
-  - platform: homeassistant
-    id: homeassistant_time
-    timezone: "Europe/London"
+binary_sensor:
+  - platform: samsung_nasa
+    message: 0x4067
+    id: valve_dhw
+    # ...
+    on_state:
+      then:
+        - script.execute: cop_mode
+  - platform: samsung_nasa
+    message: 0x402E
+    id: defrost
+    # ...
+    on_state:
+      then:
+        - script.execute: cop_mode
 ```
+
+Daily or weekly values are easiest in Home Assistant, which keeps them across ESP reboots, e.g. with a `utility_meter` per sensor and a template sensor `COP heating today = heat heating today / energy heating today`.
+
+The COP can only be as accurate as the unit's own counters. They are partly calculated rather than measured (internal sensors and settings made during installation), so for exact values an external heat meter and electricity meter are needed.
 
 Thanks to [@mergwyn](https://github.com/mergwyn) for providing these examples.
 
