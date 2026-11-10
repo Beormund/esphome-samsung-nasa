@@ -727,50 +727,6 @@ script:
 
 These values only change when a unit is replaced or updated, which means the bus is powered off and the ESP restarts anyway, so reading them once after boot is enough.
 
-#### Reading everything before connecting to Home Assistant
-
-After a reboot most values stay unknown in Home Assistant until the units send them or the read after boot has been answered, which can take a few minutes. If Wi-Fi is switched on only after a first round of reads, Home Assistant receives complete values when the ESP connects:
-
-```yaml
-wifi:
-  enable_on_boot: false
-  # ssid, password, ...
-
-esphome:
-  on_boot:
-    - priority: -100
-      then:
-        - script.execute: first_round
-        # safety net: Wi-Fi on after at most 4 minutes, even if the round hangs
-        - delay: 240s
-        - wifi.enable:
-
-script:
-  - id: first_round
-    mode: single
-    then:
-      - delay: 5s
-      - script.execute: read_device_info
-      - script.wait: read_device_info
-      # ... FSV reads etc.
-      # wait until no new value has arrived for 20 s (at most 90 s)
-      - wait_until:
-          timeout: 90s
-          condition:
-            lambda: |-
-              static uint32_t last_change = millis();
-              static int last_missing = -1;
-              int missing = 0;
-              for (auto *x : App.get_sensors()) if (!x->has_state()) missing++;
-              for (auto *x : App.get_binary_sensors()) if (!x->has_state()) missing++;
-              for (auto *x : App.get_text_sensors()) if (!x->has_state()) missing++;
-              if (missing != last_missing) { last_missing = missing; last_change = millis(); }
-              return millis() - last_change > 20000;
-      - wifi.enable:
-```
-
-Values a unit does not have stay unknown either way; on an EHS Mono that took about 2.5 minutes from flashing until Home Assistant showed all available values.
-
 #### Reading the error history when the error code changes
 
 Instead of reading 0x461E on a schedule, read it whenever the error code (0x8235) changes:
