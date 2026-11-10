@@ -83,7 +83,7 @@ class NASA_Client : public PollingComponent, public uart::UARTDevice {
   RegisterAddressFunc addressFunc_ = defaultAddressCallback;
   RegisterReceiveFunc receiveFunc_ = defaultReceiveCallback;
   // Construct a queue dispatcher that will dispatch messages via a callback
-  // 100 = limit to 100 messages, Any more and they will be discarded
+  // 100 = queue limit; further requests wait in a backlog (up to 1000) and follow as the queue empties
   // Batch deliver 10 messages every 200 millisecs. Avoids overloading the bus
   BatchDispatcher<ReadRequest> dispatcher_{100, 10, 200};
   std::deque<OutgoingData> send_queue_;
