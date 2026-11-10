@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esphome/core/application.h"
+#include <deque>
 #include <iostream>
 #include <queue>
 
@@ -10,10 +11,11 @@ namespace samsung_nasa {
 template<typename T> class LimitedQueue {
  public:
   explicit LimitedQueue(const size_t limit) : max_size_(limit) {}
-  void push(const T &value) {
+  bool push(const T &value) {
     if (this->queue_.size() >= this->max_size_)
-      return;
+      return false;
     queue_.push(value);
+    return true;
   }
   T &front() { return this->queue_.front(); }
   const T &front() const { return this->queue_.front(); }
@@ -35,7 +37,18 @@ template<typename T> class BatchDispatcher {
   using RegisterReceiveFunc = std::function<void(std::vector<T>)>;
   void register_receive_callback(RegisterReceiveFunc rrf) { this->receiveFunc_ = rrf; }
   void setup() { this->last_receive_ = millis(); }
-  void push(const T value) { this->limited_queue_.push(value); }
+  uint32_t dropped() const { return this->dropped_; }
+  // A full queue no longer drops: requests wait in a backlog and move into the queue as batches are
+  // dispatched, so a large read (e.g. the read after boot) is sent completely without flooding the bus.
+  // Only beyond backlog_limit requests are dropped (counted in dropped()).
+  void push(const T value) {
+    if (this->backlog_.empty() && this->limited_queue_.push(value))
+      return;
+    if (this->backlog_.size() < this->backlog_limit_)
+      this->backlog_.push_back(value);
+    else
+      this->dropped_++;
+  }
   void push(const std::vector<T> values ) {
     for (const auto& value : values) {
         this->push(value);
@@ -61,9 +74,14 @@ template<typename T> class BatchDispatcher {
         this->limited_queue_.pop();
       }
     }
+    while (!this->backlog_.empty() && this->limited_queue_.push(this->backlog_.front()))
+      this->backlog_.pop_front();
     this->receiveFunc_(messages);
   };
   LimitedQueue<T> limited_queue_;
+  std::deque<T> backlog_;
+  size_t backlog_limit_{1000};
+  uint32_t dropped_{0};
   const size_t batch_size_;
   const size_t delay_;
   uint32_t last_receive_{0};
