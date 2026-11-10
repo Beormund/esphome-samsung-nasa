@@ -14,13 +14,12 @@ Address Address::parse(const std::string &str) {
   return address;
 }
 
-Address Address::get_my_address() {
-  Address address;
-  address.klass = AddressClass::ADDRESS_CLASS_JIG_TESTER;
-  address.channel = 0xFF;
-  address.address = 0;
-  return address;
-}
+// Source address of this component, 80.ff.00 unless source_address is configured
+static Address my_address = Address::parse("80.ff.00");
+
+Address Address::get_my_address() { return my_address; }
+
+void Address::set_my_address(const std::string &str) { my_address = Address::parse(str); }
 
 Address Address::get_broadcast_address() {
   Address address;
