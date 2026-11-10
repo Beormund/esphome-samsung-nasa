@@ -966,6 +966,8 @@ sensor:
 
 The COP of a heat pump is a measure of its efficiency, specifically how much heat it can produce for a given amount of electricial energy input. A higher COP indicates a more efficient heat pump. For example, if a heat pump has a COP of 3, it means that for every 1 unit of electrical energy it consumes, it delivers 3 units of heat.
 
+**Accuracy:** the examples below use the unit's own values. These are partly calculated rather than measured (internal sensors and settings made during installation) and do not cover everything, e.g. circulation pumps or a backup heater on a separate supply. For reliable values use a real electricity meter and ideally a heat meter. The examples are a starting point for a single-zone unit and need adapting to other installations (booster or backup heater, several zones, extra pumps, external meters).
+
 Using sensors 0x8414 (total consumed energy) and 0x4427 (total produced energy) it is possible to do a crude calculation of the overall COP of your heat pump:
 
 ```yaml
@@ -1240,8 +1242,6 @@ binary_sensor:
 ```
 
 Daily or weekly values are easiest in Home Assistant, which keeps them across ESP reboots, e.g. with a `utility_meter` per sensor and a template sensor `COP heating today = heat heating today / energy heating today`.
-
-The COP can only be as accurate as the unit's own counters. They are partly calculated rather than measured (internal sensors and settings made during installation), so for exact values an external heat meter and electricity meter are needed.
 
 Thanks to [@mergwyn](https://github.com/mergwyn) for providing these examples.
 
