@@ -169,7 +169,7 @@ Refer to p.24 onwards of the [MIM-E03EN user manual PDF](MIM-E03EN.pdf).
 
 You can find a list of supported commands and FSVs in the [python configuration file for number components.](/components/samsung_nasa/nasa/numbers.py)
 
-For example here are the python entries for the above number components:
+Behind the scenes ESPHome uses Python scripts to configure platform components. So, for example, here are the python entries for the above number components:
 
 ```python
 numbers = {
@@ -342,18 +342,18 @@ sensor shows them as text if the content is printable, otherwise as hex. Known l
 ```yaml
 text_sensor:
   - platform: samsung_nasa
-    message: 0x0608               # main micom, e.g. "DB91-02103B 231108" (dbcode is the default for 0x0608/0x060C)
+    message: 0x0608  # main micom, e.g. "DB91-02103B 231108" (dbcode is the default for 0x0608/0x060C)
     nasa_device_id: samsung_indoor
     name: "Indoor main micom"
   - platform: samsung_nasa
-    message: 0x0600               # product option, e.g. "[0]12300-[1]10000-[2]00000-[3]00002"
+    message: 0x0600  # product option, e.g. "[0]12300-[1]10000-[2]00000-[3]00002"
     nasa_device_id: samsung_indoor
     name: "Product option"
   - platform: samsung_nasa
     message: 0x860D
     nasa_device_id: samsung_outdoor
     name: "Outdoor model information"
-    structure_format: hex         # e.g. "08 08 00 12 33"
+    structure_format: hex  # e.g. "08 08 00 12 33"
 ```
 
 ### Large numeric values
@@ -368,12 +368,12 @@ text_sensor:
   - platform: samsung_nasa
     message: 0x8404
     nasa_device_id: samsung_outdoor
-    name: "Outdoor 0x8404 exact"   # e.g. "75530754"
+    name: "Outdoor 0x8404 exact"  # e.g. "75530754"
   - platform: samsung_nasa
     message: 0x8404
     nasa_device_id: samsung_outdoor
     name: "Outdoor 0x8404 hex"
-    numeric_format: hex            # e.g. "0x04808202"
+    numeric_format: hex  # e.g. "0x04808202"
 ```
 
 ## Sensor   
