@@ -237,15 +237,29 @@ void NASA_Client::process_messageset(std::string source, std::string dest, Messa
   }
 }
 
+// Structure messages cannot be read with a plain read: the unit answers with the bare message number
+// and no payload, and a structure inside a multi-message packet cannot be decoded. Use send_structure.
+static bool is_structure(uint16_t message) { return MessageSet(message).type == Structure; }
+
 // Dont directly publish - use  batched dispatcher
 void NASA_Client::publish_read(const std::vector<uint16_t> &messages) {
-  for (const auto &message : messages)
+  for (const auto &message : messages) {
+    if (is_structure(message)) {
+      ESP_LOGD(TAG, "Skipping read of structure message 0x%04X (use send_structure)", message);
+      continue;
+    }
     this->dispatcher_.push(ReadRequest{"", message});
+  }
 }
 
 void NASA_Client::publish_read_to(const std::string &address, const std::vector<uint16_t> &messages) {
-  for (const auto &message : messages)
+  for (const auto &message : messages) {
+    if (is_structure(message)) {
+      ESP_LOGD(TAG, "Skipping read of structure message 0x%04X (use send_structure)", message);
+      continue;
+    }
     this->dispatcher_.push(ReadRequest{address, message});
+  }
 }
 
 // One read packet per destination, in the order the batch was queued
