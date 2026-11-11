@@ -756,6 +756,67 @@ sensor:
             payload: [0x00, 0x00, 0x00, 0x00, 0x00]
 ```
 
+#### Reading FSVs with FSV info (0x4612)
+
+Some FSVs have no NASA message of their own (e.g. the hysteresis settings 1061–1064), but the indoor unit answers a read of the structure message 0x4612 that carries the FSV number. The answer contains range and current value:
+
+```
+[FSV 2B] 01 [type] 01 [min 2B] [max 2B] [value 2B] 01 00 00 00
+04 25    01  05    01  00 00    00 46    00 1E     01 00 00 00   -> FSV 1061, 0..70, value 30 = 3.0 K
+07 DB    01  0A    01  FF 38    00 32    FF EC     01 00 00 00   -> FSV 2011, -20.0..5.0, value -2.0 (type 0x0A = x 0.1)
+```
+
+Values are signed 16 bit; 1061–1064 are in 0.1 K (type 0x05, range 0–70). Read only, nothing is written. Tested on an EHS Mono, the same answer format was reported for a Gen 6 unit in #125.
+
+```yaml
+text_sensor:
+  - platform: samsung_nasa
+    message: 0x4612
+    nasa_device_id: nasa_device_1   # indoor unit 20.00.00
+    name: FSV info
+    internal: true
+    on_value:
+      - lambda: |-
+          // "04 25 01 05 01 00 00 00 46 00 1E ..." -> bytes
+          std::vector<uint8_t> b;
+          for (size_t i = 0; i + 1 < x.size(); i += 3) b.push_back((uint8_t) strtol(x.substr(i, 2).c_str(), nullptr, 16));
+          if (b.size() < 11) return;
+          const int fsv = (b[0] << 8) | b[1];
+          const int16_t raw = (int16_t) ((b[9] << 8) | b[10]);
+          if (fsv == 1061) id(fsv_1061).publish_state(raw / 10.0f);
+          if (fsv == 1062) id(fsv_1062).publish_state(raw / 10.0f);
+
+sensor:
+  - platform: template
+    id: fsv_1061
+    name: FSV 1061 water heating hysteresis
+    unit_of_measurement: K
+    accuracy_decimals: 1
+  - platform: template
+    id: fsv_1062
+    name: FSV 1062 water cooling hysteresis
+    unit_of_measurement: K
+    accuracy_decimals: 1
+
+script:
+  - id: read_fsv_info
+    mode: single
+    then:
+      - samsung_nasa.send_structure:
+          nasa_device_id: nasa_device_1
+          message: 0x4612
+          data_type: read
+          payload: [0x04, 0x25, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]   # 0x0425 = 1061
+      - delay: 1500ms
+      - samsung_nasa.send_structure:
+          nasa_device_id: nasa_device_1
+          message: 0x4612
+          data_type: read
+          payload: [0x04, 0x26, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]   # 0x0426 = 1062
+```
+
+The payload is the FSV number in two bytes followed by 13 zero bytes. Settings only change at the wired controller, so reading them after boot and then e.g. hourly is enough.
+
 #### 0x860B layout
 
 The outdoor unit answers with 30 records, one per minute, covering the 30 minutes up to the error; the last record is the error itself. Each record is 13 notification packets with one 0x860B structure each. Structure payload: `00 01`, record number (0–29), `1D` (= last record number), packet number (0–12), then the data bytes listed below (byte 0 is always `0C`). The dump was still present after the error had been reset. Only packets 0, 1 and 4 carried data on a single-compressor monobloc.
