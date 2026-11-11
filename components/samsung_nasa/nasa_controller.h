@@ -31,6 +31,7 @@ class NASA_Controller : public PollingComponent {
   void set_debug_log_undefined_messages(bool value) { debug_log_undefined_messages = value; }
   // true: the initial read after boot and the read that confirms a write are sent to the device address
   // instead of the broadcast address
+  void set_source_address(const std::string &value) { Address::set_my_address(value); }
   void set_addressed_reads(bool value) {
     this->addressed_reads_ = value;
     this->nasa_client_->set_addressed_reads(value);

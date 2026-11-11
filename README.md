@@ -93,6 +93,15 @@ samsung_nasa:
 
 By default the read after boot is broadcast. Some units do not answer a broadcast read, for example when the unit address was changed (e.g. 20.01.00 after a MIM-B19N Modbus interface was fitted), so all values stay unknown until the unit sends them on its own. With `addressed_reads: true` the read after boot is sent to each configured device address instead, and the read that confirms a write goes to the device that was written to. Like broadcast reads, addressed reads are queued and sent in batches of 10 messages every 200 ms. Without the option nothing changes.
 
+### Source address
+
+```yaml
+samsung_nasa:
+  source_address: 80.ff.02
+```
+
+The component sends its requests from 80.ff.00 by default. If another device on the bus already uses 80.ff.00, both receive each other's answers. With `source_address` the component uses a different address in class 80. Only answers addressed to this address are processed. Tested on an EHS Mono with 80.ff.02: reads and writes on the indoor and outdoor unit were answered and acknowledged, also while another device was sending requests from 80.ff.00 at the same time. Without the option nothing changes.
+
 ### Debug output
 
 - `debug_log_messages`: every received value as `Src:… Dst:… 0x4238 = 326 n=1234`, plus the packets of non-notification types.
@@ -160,7 +169,7 @@ Refer to p.24 onwards of the [MIM-E03EN user manual PDF](MIM-E03EN.pdf).
 
 You can find a list of supported commands and FSVs in the [python configuration file for number components.](/components/samsung_nasa/nasa/numbers.py)
 
-For example here are the python entries for the above number components:
+Behind the scenes ESPHome uses Python scripts to configure platform components. So, for example, here are the python entries for the above number components:
 
 ```python
 numbers = {
@@ -333,18 +342,18 @@ sensor shows them as text if the content is printable, otherwise as hex. Known l
 ```yaml
 text_sensor:
   - platform: samsung_nasa
-    message: 0x0608               # main micom, e.g. "DB91-02103B 231108" (dbcode is the default for 0x0608/0x060C)
+    message: 0x0608  # main micom, e.g. "DB91-02103B 231108" (dbcode is the default for 0x0608/0x060C)
     nasa_device_id: samsung_indoor
     name: "Indoor main micom"
   - platform: samsung_nasa
-    message: 0x0600               # product option, e.g. "[0]12300-[1]10000-[2]00000-[3]00002"
+    message: 0x0600  # product option, e.g. "[0]12300-[1]10000-[2]00000-[3]00002"
     nasa_device_id: samsung_indoor
     name: "Product option"
   - platform: samsung_nasa
     message: 0x860D
     nasa_device_id: samsung_outdoor
     name: "Outdoor model information"
-    structure_format: hex         # e.g. "08 08 00 12 33"
+    structure_format: hex  # e.g. "08 08 00 12 33"
 ```
 
 ### Large numeric values
@@ -359,12 +368,12 @@ text_sensor:
   - platform: samsung_nasa
     message: 0x8404
     nasa_device_id: samsung_outdoor
-    name: "Outdoor 0x8404 exact"   # e.g. "75530754"
+    name: "Outdoor 0x8404 exact"  # e.g. "75530754"
   - platform: samsung_nasa
     message: 0x8404
     nasa_device_id: samsung_outdoor
     name: "Outdoor 0x8404 hex"
-    numeric_format: hex            # e.g. "0x04808202"
+    numeric_format: hex  # e.g. "0x04808202"
 ```
 
 ## Sensor   
@@ -689,6 +698,64 @@ The same is available from lambdas as `id(nasa_controller).send_structure("20.00
 
 WARNING: `send_structure` sends whatever you give it. Only send the messages documented here.
 
+#### Reading device information
+
+The structure messages listed under [Structure messages](#structure-messages) are not sent on their own; they arrive only when a device on the bus asks for them. A read with 10 zero bytes is answered with the content (tested on an EHS Mono, all as data type `read`):
+
+| Device | Message | Content |
+|---|---|---|
+| indoor 20.00.00 | 0x0600, 0x0601, 0x0602, 0x0603 | product option / installation options |
+| indoor 20.00.00 | 0x0605 | location (empty if not set) |
+| indoor 20.00.00 | 0x0607 | serial number |
+| indoor 20.00.00 | 0x0608 | main micom |
+| outdoor 10.00.00 | 0x061A | product model name |
+| outdoor 10.00.00 | 0x0605 | location |
+| outdoor 10.00.00 | 0x0607 | serial number |
+| outdoor 10.00.00 | 0x0608, 0x060C | main micom, EEPROM |
+| outdoor 10.00.00 | 0x8601 | inverter micom |
+| Wi-Fi kit 62.00.91 | 0x061C | MAC address (payload: 1 zero byte; also answered as a broadcast read) |
+
+```yaml
+script:
+  - id: read_device_info
+    mode: single
+    then:
+      - samsung_nasa.send_structure:
+          nasa_device_id: nasa_device_2   # outdoor unit 10.00.00
+          message: 0x061A
+          data_type: read
+          payload: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+      - delay: 1500ms
+      - samsung_nasa.send_structure:
+          nasa_device_id: nasa_device_1   # indoor unit 20.00.00
+          message: 0x0607
+          data_type: read
+          payload: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+      # ... one block per message from the table, 1.5 s apart
+```
+
+These values only change when a unit is replaced or updated, which means the bus is powered off and the ESP restarts anyway, so reading them once after boot is enough.
+
+#### Reading the error history when the error code changes
+
+Instead of reading 0x461E on a schedule, read it whenever the error code (0x8235) changes:
+
+```yaml
+sensor:
+  - platform: samsung_nasa
+    message: 0x8235
+    nasa_device_id: nasa_device_2
+    name: Error code
+    on_value:
+      then:
+        - delay: 5s
+        - samsung_nasa.send_structure:
+            nasa_device_id: nasa_device_1
+            message: 0x461E
+            data_type: read
+            payload: [0x00, 0x00, 0x00, 0x00, 0x00]
+```
+
 #### 0x860B layout
 
 The outdoor unit answers with 30 records, one per minute, covering the 30 minutes up to the error; the last record is the error itself. Each record is 13 notification packets with one 0x860B structure each. Structure payload: `00 01`, record number (0–29), `1D` (= last record number), packet number (0–12), then the data bytes listed below (byte 0 is always `0C`). The dump was still present after the error had been reset. Only packets 0, 1 and 4 carried data on a single-compressor monobloc.
@@ -966,6 +1033,8 @@ sensor:
 
 The COP of a heat pump is a measure of its efficiency, specifically how much heat it can produce for a given amount of electricial energy input. A higher COP indicates a more efficient heat pump. For example, if a heat pump has a COP of 3, it means that for every 1 unit of electrical energy it consumes, it delivers 3 units of heat.
 
+**Accuracy:** the examples below use the unit's own values. These are partly calculated rather than measured (internal sensors and settings made during installation) and do not cover everything, e.g. circulation pumps or a backup heater on a separate supply. For reliable values use a real electricity meter and ideally a heat meter. The examples are a starting point for a single-zone unit and need adapting to other installations (booster or backup heater, several zones, extra pumps, external meters).
+
 Using sensors 0x8414 (total consumed energy) and 0x4427 (total produced energy) it is possible to do a crude calculation of the overall COP of your heat pump:
 
 ```yaml
@@ -982,76 +1051,264 @@ sensor:
     accuracy_decimals: 2
 ```
 
-To calculate the COP minute by minute (bear in mind this will only be meaningful when the heat pump is running):
+### Current COP
+
+Heat output (0x4426) and power input (0x8413) arrive about once per minute and at different times. Dividing whatever values are current at a fixed interval mixes an old value with a new one, so the result jumps. Calculating only when both values have been refreshed since the last calculation keeps the COP current without the jumps:
 
 ```yaml
-# Assuming the 0x4426 sensor has an id of heat_generated_last_min
-# Assuming the 0x8413 sensor has an id of heat_consumed_last_min
+# Assuming 0x4426 has id heat_output, 0x8413 has id power_input and the compressor frequency (0x8238) has id comp_freq
+globals:
+  - id: cop_heat_fresh
+    type: bool
+    initial_value: 'false'
+  - id: cop_power_fresh
+    type: bool
+    initial_value: 'false'
+
+script:
+  - id: cop_pair
+    then:
+      - lambda: |-
+          if (!id(cop_heat_fresh) || !id(cop_power_fresh)) return;
+          id(cop_heat_fresh) = false;
+          id(cop_power_fresh) = false;
+          float out = id(heat_output).get_raw_state();
+          float in = id(power_input).get_raw_state();
+          float hz = id(comp_freq).state;
+          // no COP while the compressor is off or the power input is too small to be meaningful
+          if (!std::isfinite(hz) || hz <= 0 || !std::isfinite(out) || !std::isfinite(in) || in < 100) {
+            id(cop_current).publish_state(NAN);
+            return;
+          }
+          id(cop_current).publish_state(out / in);
+
 sensor:
+  - platform: samsung_nasa
+    message: 0x4426
+    id: heat_output
+    # ...
+    on_raw_value:
+      then:
+        - lambda: 'id(cop_heat_fresh) = true;'
+        - script.execute: cop_pair
+  - platform: samsung_nasa
+    message: 0x8413
+    id: power_input
+    # ...
+    on_raw_value:
+      then:
+        - lambda: 'id(cop_power_fresh) = true;'
+        - script.execute: cop_pair
   - platform: template
-    name: COP - Instant
-    icon: mdi:chart-bar
+    name: COP - Current
+    id: cop_current
     state_class: measurement
-    lambda: |-
-      float x = (id(heat_generated_last_min).state /
-           id(heat_consumed_last_min).state);
-      if (x > 8) { x = 8; }
-      if (x < 0) { x = 0; }
-      return x;
-    update_interval: 10s
     accuracy_decimals: 2
+    update_interval: never
 ```
 
-Calculating daily COP takes a little more work. First, create two sensors using ESPHome's total_daily_energy platform. For the power_id fields use the heat_consumed_last_min (sensor 0x8413) and head_generated_last_min (sensor 0x4426) sensors from the example above.
+### Energy, runtime and starts per operating mode
+
+A COP over a day or a week is best calculated from the cumulative counters (0x4427 heat generated, 0x8414 energy consumed) as Δheat / Δenergy. Splitting the energy by operating mode matters, because domestic hot water runs at a higher flow temperature and a mixed COP says little about either mode.
+
+The header below assigns each increase of the counters to space heating, DHW, idle or unknown, based on the compressor frequency and the 3-way valve (0x4067). An increase that spans a change of mode is split by time. Defrost is counted in the mode it happens in and additionally on its own. Everything lives in RAM: after a reboot the counters start at 0 again, and Home Assistant continues them because they are `total_increasing`. Only the energy during the time the ESP is offline is not assigned.
+
+Save as `cop_split.h` next to your YAML:
+
+```cpp
+#pragma once
+#include <cstdint>
+
+namespace cop_split {
+
+enum Mode : uint8_t { HEATING = 0, DHW = 1, IDLE = 2, UNKNOWN = 3, MODES = 4 };
+
+struct Counter {
+  bool has_value = false;
+  float last = 0;
+  double time_ms[MODES] = {0};  // time per mode since the last counter value
+  double defrost_ms = 0;
+  double kwh[MODES] = {0};
+  double defrost_kwh = 0;
+};
+
+struct State {
+  Mode mode = UNKNOWN;
+  bool defrost = false;
+  bool has_time = false;
+  uint32_t since_ms = 0;
+  Counter counter[2];  // 0 = heat, 1 = energy
+  double run_ms[MODES] = {0};
+  double defrost_run_ms = 0;
+  uint32_t starts[MODES] = {0};
+};
+
+inline State &state() {
+  static State s;
+  return s;
+}
+
+inline Mode mode_of(bool hz_valid, float hz, bool valve_valid, bool valve_dhw) {
+  if (!hz_valid) return UNKNOWN;
+  if (hz <= 0) return IDLE;
+  if (!valve_valid) return UNKNOWN;
+  return valve_dhw ? DHW : HEATING;
+}
+
+// credit the elapsed time to the previous mode, then switch to the new one
+inline void update(uint32_t now_ms, Mode mode, bool defrost) {
+  State &s = state();
+  defrost = defrost && (mode == HEATING || mode == DHW);
+  if (s.has_time) {
+    double dt = (double) (uint32_t) (now_ms - s.since_ms);
+    s.run_ms[s.mode] += dt;
+    if (s.defrost) s.defrost_run_ms += dt;
+    for (auto &c : s.counter) {
+      c.time_ms[s.mode] += dt;
+      if (s.defrost) c.defrost_ms += dt;
+    }
+    if (s.mode == IDLE && (mode == HEATING || mode == DHW)) s.starts[mode]++;
+  }
+  s.mode = mode;
+  s.defrost = defrost;
+  s.since_ms = now_ms;
+  s.has_time = true;
+}
+
+inline void reset_time(Counter &c) {
+  for (auto &t : c.time_ms) t = 0;
+  c.defrost_ms = 0;
+}
+
+// new counter value in kWh
+inline void counter_value(int nr, float value, uint32_t now_ms) {
+  State &s = state();
+  update(now_ms, s.mode, s.defrost);
+  Counter &c = s.counter[nr];
+  if (!(value > 0)) return;
+  if (!c.has_value) {  // first value after boot: baseline only
+    c.has_value = true;
+    c.last = value;
+    reset_time(c);
+    return;
+  }
+  double delta = (double) value - (double) c.last;
+  if (delta == 0) return;
+  double total_ms = 0;
+  for (double t : c.time_ms) total_ms += t;
+  // counter went back or jumped (more than 30 kW over the elapsed time): new baseline, nothing assigned
+  if (delta < 0 || delta > 30.0 * total_ms / 3.6e6 + 0.05) {
+    if (delta < 0 && delta > -0.05) return;
+    c.last = value;
+    reset_time(c);
+    return;
+  }
+  if (total_ms <= 0) {
+    c.kwh[s.mode] += delta;
+    if (s.defrost) c.defrost_kwh += delta;
+  } else {
+    for (int m = 0; m < MODES; m++) c.kwh[m] += delta * c.time_ms[m] / total_ms;
+    c.defrost_kwh += delta * c.defrost_ms / total_ms;
+  }
+  c.last = value;
+  reset_time(c);
+}
+
+inline float kwh(int nr, Mode m) { return (float) state().counter[nr].kwh[m]; }
+inline float defrost_kwh(int nr) { return (float) state().counter[nr].defrost_kwh; }
+inline float hours(Mode m) { return (float) (state().run_ms[m] / 3.6e6); }
+inline float defrost_hours() { return (float) (state().defrost_run_ms / 3.6e6); }
+inline float starts(Mode m) { return (float) state().starts[m]; }
+
+}  // namespace cop_split
+```
+
+And in the YAML (ids as above, plus `heat_total` for 0x4427, `energy_total` for 0x8414, `valve_dhw` for the binary sensor 0x4067 and `defrost` for 0x402E):
 
 ```yaml
+esphome:
+  includes:
+    - cop_split.h
+
+script:
+  - id: cop_mode
+    then:
+      - lambda: |-
+          auto mode = cop_split::mode_of(id(comp_freq).has_state() && std::isfinite(id(comp_freq).state),
+                                         id(comp_freq).state, id(valve_dhw).has_state(), id(valve_dhw).state);
+          cop_split::update(millis(), mode, id(defrost).has_state() && id(defrost).state);
+      - script.execute: cop_publish
+  - id: cop_publish
+    then:
+      - lambda: |-
+          using namespace cop_split;
+          id(heat_heating).publish_state(kwh(0, HEATING));
+          id(heat_dhw).publish_state(kwh(0, DHW));
+          id(energy_heating).publish_state(kwh(1, HEATING));
+          id(energy_dhw).publish_state(kwh(1, DHW));
+          id(energy_idle).publish_state(kwh(1, IDLE));
+          id(energy_defrost).publish_state(defrost_kwh(1));
+          id(runtime_heating).publish_state(hours(HEATING));
+          id(runtime_dhw).publish_state(hours(DHW));
+          id(starts_heating).publish_state(starts(HEATING));
+          id(starts_dhw).publish_state(starts(DHW));
+
 sensor:
-  - platform: total_daily_energy
-    id: daily_energy_consumed
-    name: Daily Energy Consumed
-    power_id: heat_consumed_last_min
-    unit_of_measurement: 'kWh'
-    state_class: total_increasing
-    device_class: energy
-    accuracy_decimals: 3
-    filters:
-      # Multiplication factor from W to kW is 0.001
-      - multiply: 0.001
-  - platform: total_daily_energy
-    id: daily_heat_generated
-    name: Daily Heat Generated
-    power_id: heat_generated_last_min
-    unit_of_measurement: 'kWh'
-    state_class: total_increasing
-    device_class: energy
-    accuracy_decimals: 3
-    filters:
-      # Multiplication factor from W to kW is 0.001
-      - multiply: 0.001
-```
-Finally, use these two total_daily_energy sensors in a template sensor:
-
-```yaml
+  - platform: samsung_nasa
+    message: 0x8238
+    id: comp_freq
+    # ...
+    on_raw_value:  # every frame, so the mode is known soon after boot
+      then:
+        - script.execute: cop_mode
+  - platform: samsung_nasa
+    message: 0x4427
+    id: heat_total
+    # ...
+    on_value:  # after the library filter (kWh)
+      then:
+        - script.execute: cop_mode
+        - lambda: 'cop_split::counter_value(0, x, millis());'
+        - script.execute: cop_publish
+  - platform: samsung_nasa
+    message: 0x8414
+    id: energy_total
+    # ...
+    on_value:
+      then:
+        - script.execute: cop_mode
+        - lambda: 'cop_split::counter_value(1, x, millis());'
+        - script.execute: cop_publish
+  # one template sensor per value, for example:
   - platform: template
-    name: COP - Daily
-    icon: mdi:chart-bar
-    state_class: measurement
-    lambda: |-
-      float x = (id(daily_heat_generated).state /
-           id(daily_energy_consumed).state);
-      if (x > 8) { x = 8; }
-      if (x < 0) { x = 0; }
-      return x;
-```
-To have the daily COP sensor reset each day you will need a time component (sntp, home assistant etc). Dont' forget to set your [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (Region/City). 
+    name: Heat - Heating
+    id: heat_heating
+    unit_of_measurement: kWh
+    device_class: energy
+    state_class: total_increasing
+    accuracy_decimals: 3
+    update_interval: never
+  # ... heat_dhw, energy_heating, energy_dhw, energy_idle, energy_defrost (kWh),
+  # runtime_heating, runtime_dhw (h, device_class duration), starts_heating, starts_dhw (no unit)
 
-```yaml
-# Enable time component to reset energy at midnight
-time:
-  - platform: homeassistant
-    id: homeassistant_time
-    timezone: "Europe/London"
+binary_sensor:
+  - platform: samsung_nasa
+    message: 0x4067
+    id: valve_dhw
+    # ...
+    on_state:
+      then:
+        - script.execute: cop_mode
+  - platform: samsung_nasa
+    message: 0x402E
+    id: defrost
+    # ...
+    on_state:
+      then:
+        - script.execute: cop_mode
 ```
+
+Daily or weekly values are easiest in Home Assistant, which keeps them across ESP reboots, e.g. with a `utility_meter` per sensor and a template sensor `COP heating today = heat heating today / energy heating today`.
 
 Thanks to [@mergwyn](https://github.com/mergwyn) for providing these examples.
 
@@ -1067,7 +1324,7 @@ On startup the NASA Controller issues a read request for all configured samsung_
 
 When a command is issued and successfully actioned by the heat pump, the heat pump responds with an ACK message. A read request is then issued to confirm the new value and this is reported back to the samsung_nasa platform components. Components therefore do not require optimistic: true to be set as feedback from the NASA Controller component updates the state of the component soon after the command has been issued.
 
-A batched dispatcher is used for outgoing read requests - this automatically combines up to 10 read requests into a single payload and these batches are issued with a small delay betweeen each dispatch as a means of congestion control. There is also an outgoing queue which writes to the bus when the bus is "quiet" i.e. not currently receiving data. These two approaches combined together should hopefully minimise traffic and help reduce collisions.
+A batched dispatcher is used for outgoing read requests - this automatically combines up to 10 read requests into a single payload and these batches are issued with a small delay betweeen each dispatch as a means of congestion control. Read requests beyond the queue limit of 100 (e.g. the read after boot of a large configuration) wait in a backlog and are sent as the queue empties, so none are lost. There is also an outgoing queue which writes to the bus when the bus is "quiet" i.e. not currently receiving data. These two approaches combined together should hopefully minimise traffic and help reduce collisions.
 
 ## NASA Protocol & List of Codes
 

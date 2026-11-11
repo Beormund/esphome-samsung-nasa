@@ -14,6 +14,7 @@ struct Address {
   uint8_t size = 3;
   static Address parse(const std::string &str);
   static Address get_my_address();
+  static void set_my_address(const std::string &str);
   static Address get_broadcast_address();
   void decode(std::vector<uint8_t> &data, unsigned int index);
   void encode(std::vector<uint8_t> &data);
