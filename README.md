@@ -1375,9 +1375,9 @@ Thanks to [@mergwyn](https://github.com/mergwyn) for providing these examples.
 
 ## Home Assistant
 
-An example heat pump dashboard in Home Assistant using this component and the example.yaml.
+An example heat pump dashboard in Home Assistant using this component.
 
-<img src="samsung_nasa.png" width="100%"/>
+<img src="home_assistant_dashboard.jpg"/>
 
 ## Implementation Details
 
